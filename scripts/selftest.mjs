@@ -6,13 +6,14 @@ const appJs = await fs.readFile(new URL('../app.js', import.meta.url), 'utf8');
 const exportJs = await fs.readFile(new URL('../export.js', import.meta.url), 'utf8');
 const historyJs = await fs.readFile(new URL('../history.js', import.meta.url), 'utf8');
 const geocodeJs = await fs.readFile(new URL('../geocode.js', import.meta.url), 'utf8');
+const v14Js = await fs.readFile(new URL('../v14.js', import.meta.url), 'utf8');
 
 function requireText(source, needle, label) {
   if (!source.includes(needle)) throw new Error(`Contrôle statique manquant : ${label}`);
 }
 
 function runStaticChecks() {
-  requireText(indexHtml, 'v1.3.1', 'version v1.3.1');
+  requireText(indexHtml, 'v1.4', 'version v1.4');
   requireText(indexHtml, 'id="outsideAgglomeration"', 'case hors agglomération');
   requireText(indexHtml, 'id="treeSupport"', 'case support sur arbre');
   requireText(appJs, 'function addNationalChecks', 'moteur de règles nationales');
@@ -23,17 +24,23 @@ function runStaticChecks() {
   requireText(exportJs, 'function atlasReportText', 'générateur de fiche');
   requireText(indexHtml, 'id="saveCaseBtn"', 'bouton enregistrement dossier');
   requireText(indexHtml, 'id="historyList"', 'liste historique');
-  requireText(indexHtml, 'history.js?v=1.3.1', 'chargement historique v1.3.1');
+  requireText(indexHtml, 'history.js?v=1.4', 'chargement historique v1.4');
   requireText(historyJs, 'ATLAS_HISTORY_KEY', 'clé stockage historique');
-  requireText(historyJs, 'localStorage', 'stockage local historique');
-  requireText(historyJs, 'function restoreAtlasCase', 'restauration dossier');
+  requireText(historyJs, 'borderingRoads', 'historisation du nombre de voies');
   requireText(geocodeJs, 'searchIndex(query, "poi")', 'recherche POI Géoplateforme');
   requireText(geocodeJs, 'Promise.allSettled', 'recherche parallèle adresse + POI');
   requireText(geocodeJs, 'function firstText', 'normalisation des propriétés POI');
   requireText(geocodeJs, 'function normalizeFeature', 'normalisation des résultats POI');
   requireText(geocodeJs, 'function scoreFeature', 'classement de pertinence');
-  requireText(geocodeJs, 'document.dispatchEvent(new CustomEvent("atlas:geocoded"', 'déclenchement de la chaîne parcelle/zonage/patrimoine');
-  console.log('✅ Contrôles statiques v1.3.1');
+  requireText(indexHtml, 'id="borderingRoads"', 'champ nombre de voies bordant l’activité');
+  requireText(indexHtml, 'id="planFile"', 'import de plan');
+  requireText(indexHtml, 'id="docSearchBtn"', 'recherche documentaire Pappers');
+  requireText(v14Js, 'function appendRoadCheck', 'contrôle voies v1.4');
+  requireText(v14Js, 'function previewPlan', 'aperçu plan local');
+  requireText(v14Js, 'function runPappersSearch', 'recherche documentaire publique');
+  requireText(v14Js, 'politique.pappers.fr/commune/document', 'ciblage Pappers Politique');
+  requireText(indexHtml, 'v14.js?v=1.4', 'chargement outils v1.4');
+  console.log('✅ Contrôles statiques v1.4');
 }
 
 function firstText(...values) {
@@ -68,7 +75,7 @@ function precisionOf(properties = {}, sourceIndex = 'address') {
 }
 
 async function json(url, timeoutMs = 10000) {
-  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.3.1' }, signal: AbortSignal.timeout(timeoutMs) });
+  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.4' }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
   return res.json();
 }
