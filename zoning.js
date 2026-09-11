@@ -1,36 +1,28 @@
-// Atlas v0.4 — cadastre, carte et aide au zonage
-// La zone ZE peut être déduite de la ZP selon le règlement officiel :
-// ZP1/ZP2 -> ZE1 ; ZP3/ZP4-A/ZP4-B/ZP5-B -> ZE2 ; ZP5-A/ZP5-C -> ZE3.
-
+// Atlas v0.5 — carte, cadastre et zonage assisté avec niveau de confiance
 const ZP_TO_ZE = {
-  "ZP1": "ZE1",
-  "ZP2": "ZE1",
-  "ZP3": "ZE2",
-  "ZP4-A": "ZE2",
-  "ZP4-B": "ZE2",
-  "ZP5-A": "ZE3",
-  "ZP5-B": "ZE2",
-  "ZP5-C": "ZE3"
+  "ZP1": "ZE1", "ZP2": "ZE1", "ZP3": "ZE2", "ZP4-A": "ZE2", "ZP4-B": "ZE2",
+  "ZP5-A": "ZE3", "ZP5-B": "ZE2", "ZP5-C": "ZE3"
 };
-
-const KNOWN_ZP5A_HINTS = [
-  "berlange", "saint-vincent", "saint vincent", "route de thionville", "deux fontaines",
-  "actisud", "belle fontaine", "technopole", "technopôle", "sebastopol", "sébastopol",
-  "grimont", "nouveau port", "ikea", "general metman", "général metman", "rue de l'abattoir", "rue de l’abattoir"
-];
-
-const KNOWN_ZP5B_HINTS = [
-  "tannerie", "saussaie-aux-dames", "saussaie aux dames", "patrotte", "muse", "kinepolis", "kinépolis",
-  "haut-rhele", "haut-rhêle", "dr schweitzer"
-];
 
 let atlasMap = null;
 let atlasMarker = null;
+let ZONING = null;
+
+const normalize = (value = "") => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+async function loadZoningReference() {
+  try {
+    const res = await fetch("data/zoning-sectors.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    ZONING = await res.json();
+  } catch (e) {
+    console.warn("Référentiel zonage indisponible", e);
+  }
+}
 
 function initAtlasMap() {
   const el = document.getElementById("map");
-  if (!el || !window.L) return;
-  if (atlasMap) return;
+  if (!el || !window.L || atlasMap) return;
   atlasMap = L.map("map", { zoomControl: true }).setView([49.12, 6.18], 11);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -60,19 +52,49 @@ function setZoneStatus(text, kind = "neutral") {
   el.className = `geo-status ${kind}`;
 }
 
-function setZones(zp, sourceText) {
+function setConfidence(level, detail = "") {
+  const el = document.getElementById("zoneConfidence");
+  if (!el) return;
+  const labels = {
+    high: ["Élevée", "ok"],
+    medium: ["Moyenne", "warn"],
+    manual: ["À confirmer", "neutral"]
+  };
+  const [label, cls] = labels[level] || labels.manual;
+  el.textContent = detail ? `${label} · ${detail}` : label;
+  el.className = `scope-badge ${cls}`;
+}
+
+function applyZone(zp, reason, confidence = "high") {
   const zpSelect = document.getElementById("zp");
   const zeSelect = document.getElementById("ze");
   if (!zpSelect || !zeSelect || !zp) return;
   zpSelect.value = zp;
   zeSelect.value = ZP_TO_ZE[zp] || "";
-  setZoneStatus(`${zp} détectée${ZP_TO_ZE[zp] ? ` · ${ZP_TO_ZE[zp]} déduite automatiquement` : ""}${sourceText ? ` · ${sourceText}` : ""}`, "ok");
+  const kind = confidence === "high" ? "ok" : "warn";
+  setZoneStatus(`${zp} proposée · ${ZP_TO_ZE[zp] || "ZE à déterminer"} · ${reason}`, kind);
+  setConfidence(confidence, confidence === "high" ? "secteur explicitement nommé" : "règle communale");
 }
 
 function inferZoneFromAddress() {
-  const raw = `${document.getElementById("address")?.value || ""} ${document.getElementById("city")?.value || ""}`.toLowerCase();
-  if (KNOWN_ZP5A_HINTS.some((x) => raw.includes(x))) return { zp: "ZP5-A", reason: "secteur d’activités majeur identifié" };
-  if (KNOWN_ZP5B_HINTS.some((x) => raw.includes(x))) return { zp: "ZP5-B", reason: "secteur d’activités diffus identifié" };
+  if (!ZONING) return null;
+  const address = document.getElementById("address")?.value || "";
+  const city = document.getElementById("city")?.value || "";
+  const raw = normalize(`${address} ${city}`);
+  const cityNorm = normalize(city);
+
+  for (const [zp, sectors] of Object.entries(ZONING.zones || {})) {
+    for (const sector of sectors) {
+      const cityOk = !sector.communes?.length || sector.communes.some((c) => normalize(c) === cityNorm);
+      const hit = (sector.aliases || []).some((a) => raw.includes(normalize(a)));
+      if (cityOk && hit) {
+        return { zp, reason: `${sector.name} identifié dans l’adresse`, confidence: "high" };
+      }
+    }
+  }
+
+  const rule = (ZONING.commune_rules || []).find((r) => normalize(r.commune) === cityNorm);
+  if (rule) return { zp: rule.candidate, reason: rule.reason, confidence: rule.confidence || "medium" };
   return null;
 }
 
@@ -85,10 +107,7 @@ async function lookupParcel(lat, lon) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const f = data.features?.[0];
-    if (!f) {
-      setParcel("Parcelle non identifiée", "warn");
-      return;
-    }
+    if (!f) return setParcel("Parcelle non identifiée", "warn");
     const p = f.properties || {};
     const id = p.id || p.parcel_id || p.parcelle || p.name || p.label || "Parcelle trouvée";
     setParcel(id, "ok");
@@ -101,16 +120,19 @@ async function lookupParcel(lat, lon) {
 function updateAutomaticZoning() {
   const inferred = inferZoneFromAddress();
   if (inferred) {
-    setZones(inferred.zp, inferred.reason);
+    applyZone(inferred.zp, inferred.reason, inferred.confidence);
+    return;
+  }
+
+  const zp = document.getElementById("zp")?.value;
+  const ze = zp ? ZP_TO_ZE[zp] : "";
+  if (zp && ze) {
+    document.getElementById("ze").value = ze;
+    setZoneStatus(`${ze} déduite automatiquement de ${zp}. La ZP reste une sélection manuelle à confirmer avec le plan officiel.`, "warn");
+    setConfidence("manual", "ZP sélectionnée manuellement");
   } else {
-    const zp = document.getElementById("zp")?.value;
-    const ze = zp ? ZP_TO_ZE[zp] : "";
-    if (zp && ze) {
-      document.getElementById("ze").value = ze;
-      setZoneStatus(`${ze} déduite automatiquement de ${zp}. ZP à confirmer avec le plan officiel si elle n’a pas été détectée automatiquement.`, "warn");
-    } else {
-      setZoneStatus("ZP non déterminée automatiquement : sélectionner la zone d’après le plan officiel. La ZE sera ensuite calculée automatiquement.", "warn");
-    }
+    setZoneStatus("Aucune zone fiable détectée automatiquement. Consultez le plan officiel puis sélectionnez la ZP ; Atlas calculera la ZE.", "warn");
+    setConfidence("manual", "plan officiel requis");
   }
 }
 
@@ -124,4 +146,8 @@ document.addEventListener("atlas:geocoded", (event) => {
 });
 
 window.AtlasZoning = { updateAtlasMap, lookupParcel, updateAutomaticZoning, ZP_TO_ZE };
-window.addEventListener("load", initAtlasMap);
+window.addEventListener("load", async () => {
+  initAtlasMap();
+  await loadZoningReference();
+  updateAutomaticZoning();
+});
