@@ -13,7 +13,7 @@
       <h1>Atlas</h1>
       <p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p>
     </div>
-    <span class="version">v0.6</span>
+    <span class="version">v0.7</span>
   </header>
 
   <main class="layout">
@@ -51,9 +51,9 @@
           <input id="city" type="text" placeholder="Woippy" />
         </label>
         <div class="info-field">
-          <span>Zonage assisté v0.6</span>
-          <strong>La parcelle devient la référence du dossier</strong>
-          <small>Une détection par nom de rue ou secteur n’est plus classée « élevée ». Le niveau élevé est réservé à une future intersection géographique fiable avec un zonage officiel.</small>
+          <span>Zonage assisté v0.7</span>
+          <strong>La parcelle reste la référence du dossier</strong>
+          <small>Une détection par nom de rue ou secteur reste une proposition à confirmer. Le niveau élevé est réservé à une intersection géographique fiable avec une couche officielle.</small>
         </div>
         <label>Zone publicité / préenseigne
           <select id="zp">
@@ -72,6 +72,35 @@
       </div>
       <div id="zoneStatus" class="geo-status neutral">La ZE est automatiquement déduite dès qu’une ZP est connue.</div>
       <p class="source-links"><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_arret/Zonage_pubs_V5_compressed.pdf" target="_blank" rel="noopener">Ouvrir le plan officiel des zonages</a></p>
+    </section>
+
+    <section class="card heritage-card">
+      <div class="section-head">
+        <h2>Protections patrimoniales</h2>
+        <span id="heritageBadge" class="scope-badge neutral">À rechercher</span>
+      </div>
+      <div id="heritageStatus" class="geo-status neutral">Le contrôle se lance automatiquement après sélection d’une adresse.</div>
+      <div class="heritage-grid">
+        <div>
+          <span class="heritage-title">AC1</span>
+          <strong>Monuments historiques / abords</strong>
+          <small>Contrôle des servitudes patrimoniales liées aux monuments historiques.</small>
+        </div>
+        <div>
+          <span class="heritage-title">AC2</span>
+          <strong>Sites inscrits / classés</strong>
+          <small>Contrôle des protections relatives aux monuments naturels et sites.</small>
+        </div>
+        <div>
+          <span class="heritage-title">AC4</span>
+          <strong>Sites patrimoniaux remarquables</strong>
+          <small>Contrôle des SPR, PVAP et protections patrimoniales associées.</small>
+        </div>
+      </div>
+      <div id="heritageResults" class="heritage-results">
+        <div class="heritage-empty"><strong>Aucune recherche effectuée.</strong><span>Sélectionnez une adresse pour interroger les servitudes patrimoniales du Géoportail de l’Urbanisme.</span></div>
+      </div>
+      <p class="source-links"><a href="https://www.geoportail-urbanisme.gouv.fr/" target="_blank" rel="noopener">Ouvrir le Géoportail de l’Urbanisme</a></p>
     </section>
 
     <section class="card">
@@ -125,10 +154,10 @@
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
       <div id="checksResult" class="checks-result"></div>
       <details>
-        <summary>Référentiel et limites de la v0.6</summary>
-        <p>Atlas v0.6 rend la parcelle cadastrale centrale dans le dossier et distingue explicitement la méthode utilisée pour proposer un zonage.</p>
-        <p>Une correspondance par nom de rue ou de secteur donne désormais une confiance <strong>moyenne</strong>, car une même voie peut traverser plusieurs zones. Le niveau <strong>élevé</strong> est réservé à une intersection géographique fiable entre le point ou la parcelle et une couche officielle de zonage.</p>
-        <p>Tant qu’une couche SIG officielle exploitable n’est pas disponible, le plan officiel reste la référence à confirmer pour toute décision.</p>
+        <summary>Référentiel et limites de la v0.7</summary>
+        <p>Atlas v0.7 ajoute un contrôle automatique des principales servitudes patrimoniales au point géocodé : AC1 (monuments historiques), AC2 (sites inscrits/classés) et AC4 / AC4 bis (sites patrimoniaux remarquables).</p>
+        <p>Les données proviennent du Géoportail de l’Urbanisme et restent informatives. Une absence de résultat ne vaut pas preuve juridique d’absence de protection : les données opposables, l’avis de l’ABF et les documents officiels restent à vérifier lorsqu’ils sont requis.</p>
+        <p>Le zonage RLPi conserve la logique prudente de la v0.6 : les indices textuels restent à confirmer sur le plan officiel.</p>
         <p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p>
       </details>
     </section>
@@ -136,6 +165,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="zoning.js"></script>
+  <script src="heritage.js"></script>
   <script src="geocode.js"></script>
   <script src="app.js"></script>
 </body>
