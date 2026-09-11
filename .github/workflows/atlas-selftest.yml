@@ -11,6 +11,8 @@ on:
       - 'geocode.js'
       - 'zoning.js'
       - 'heritage.js'
+      - 'v14.js'
+      - 'v14.css'
       - 'data/test-cases.json'
       - 'scripts/selftest.mjs'
       - '.github/workflows/atlas-selftest.yml'
