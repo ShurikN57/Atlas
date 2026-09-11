@@ -9,12 +9,13 @@
   <meta http-equiv="Expires" content="0" />
   <title>Atlas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="styles.css?v=1.3.1" />
+  <link rel="stylesheet" href="styles.css?v=1.4" />
+  <link rel="stylesheet" href="v14.css?v=1.4" />
 </head>
 <body>
   <header class="topbar">
     <div><h1>Atlas</h1><p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p></div>
-    <span class="version">v1.3.1</span>
+    <span class="version">v1.4</span>
   </header>
 
   <main class="layout">
@@ -28,7 +29,7 @@
       <div id="map" class="map" aria-label="Carte de localisation"></div>
       <div class="grid two">
         <label>Commune<input id="city" type="text" placeholder="Woippy" /></label>
-        <div class="info-field"><span>Zonage assisté v1.3.1</span><strong>Recherche adresse + lieux / établissements</strong><small>Les propriétés des POI sont normalisées avant traitement. Après sélection d’un lieu, Atlas relance correctement la carte, la parcelle, le périmètre, le zonage assisté et le contrôle patrimonial.</small></div>
+        <div class="info-field"><span>Zonage assisté v1.4</span><strong>Recherche adresse + lieux / établissements</strong><small>Atlas conserve la chaîne de localisation v1.3.1 et ajoute les outils voies, plans et recherche documentaire.</small></div>
         <label>Zone publicité / préenseigne<select id="zp"><option value="">À déterminer</option><option>ZP1</option><option>ZP2</option><option>ZP3</option><option>ZP4-A</option><option>ZP4-B</option><option>ZP5-A</option><option>ZP5-B</option><option>ZP5-C</option></select></label>
         <label>Zone enseigne<select id="ze"><option value="">À déterminer</option><option>ZE1</option><option>ZE2</option><option>ZE3</option></select></label>
       </div>
@@ -40,6 +41,53 @@
       <div class="section-head"><h2>Protections patrimoniales</h2><span id="heritageBadge" class="scope-badge neutral">À rechercher</span></div>
       <div id="heritageStatus" class="geo-status neutral">Le contrôle se lance automatiquement après sélection d’un emplacement.</div>
       <details id="heritageDetails" class="heritage-details"><summary>Afficher le détail AC1 / AC2 / AC4</summary><div class="heritage-grid"><div><span class="heritage-title">AC1</span><strong>Monuments historiques / abords</strong><small>Contrôle des servitudes patrimoniales liées aux monuments historiques.</small></div><div><span class="heritage-title">AC2</span><strong>Sites inscrits / classés</strong><small>Contrôle des protections relatives aux monuments naturels et sites.</small></div><div><span class="heritage-title">AC4</span><strong>Sites patrimoniaux remarquables</strong><small>Contrôle des SPR, PVAP et protections patrimoniales associées.</small></div></div><div id="heritageResults" class="heritage-results"><div class="heritage-empty"><strong>Aucune recherche effectuée.</strong><span>Sélectionnez un emplacement pour interroger les servitudes patrimoniales du Géoportail de l’Urbanisme.</span></div></div><p class="source-links"><a href="https://www.geoportail-urbanisme.gouv.fr/" target="_blank" rel="noopener">Ouvrir le Géoportail de l’Urbanisme</a></p></details>
+    </section>
+
+    <section class="card">
+      <div class="section-head"><h2>Voies bordant l’activité</h2><span class="mini-badge">Contrôle densité enseignes au sol</span></div>
+      <div class="grid two">
+        <label>Nombre de voies ouvertes à la circulation publique bordant l’activité / l’unité foncière<select id="borderingRoads"><option value="">À déterminer</option><option value="1">1 voie</option><option value="2">2 voies</option><option value="3plus">3 voies ou plus</option></select></label>
+        <label>Niveau de confirmation<select id="roadsConfidence"><option value="manual">Déclaré / à confirmer</option><option value="confirmed">Confirmé par plan cadastral + plan de masse</option></select></label>
+        <label>Justification / observation<textarea id="roadsNote" rows="3" placeholder="Ex. A31 borde l’unité foncière ; les voies internes de l’aire sont des voies de desserte à distinguer."></textarea></label>
+      </div>
+      <div class="road-help"><strong>Comment compter ?</strong>Une route à plusieurs files reste une seule voie. On compte les voies distinctes qui bordent réellement l’activité ou l’unité foncière et qui sont ouvertes à la circulation publique. Les voies internes d’un parking ou d’une aire ne comptent pas automatiquement comme des voies distinctes bordant l’activité.</div>
+    </section>
+
+    <section class="card">
+      <div class="section-head"><h2>Plans du dossier</h2><span class="mini-badge">PDF / JPG / PNG · local au navigateur</span></div>
+      <div class="grid two">
+        <label>Type de plan<select id="planType"><option value="mass">Plan de masse</option><option value="cadastre">Plan cadastral</option><option value="other">Autre plan</option></select></label>
+        <label>Importer un plan<input id="planFile" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" /></label>
+      </div>
+      <div id="planMeta" class="plan-meta">Aucun plan chargé.</div>
+      <div id="planPreview" class="plan-preview"></div>
+      <details id="planGuidedAnalysis" class="heritage-details">
+        <summary>Analyse guidée du plan</summary>
+        <p class="helper-note">Le fichier reste dans votre navigateur : Atlas affiche le plan et vous aide à formaliser la lecture. L’analyse visuelle automatique par IA n’est pas activée tant qu’un backend sécurisé n’est pas raccordé.</p>
+        <div class="plan-checks">
+          <label><input id="planShowsParcel" type="checkbox" /> Les limites de la parcelle / unité foncière sont clairement visibles.</label>
+          <label><input id="planShowsPublicRoads" type="checkbox" /> Les voies ouvertes à la circulation publique bordant le terrain sont identifiables.</label>
+          <label><input id="planShowsInternalRoads" type="checkbox" /> Les voies internes / dessertes sont distinguées des voies bordant le terrain.</label>
+        </div>
+        <div class="grid two"><label>Nombre de voies retenu d’après les plans<select id="planRoadCount"><option value="">À déterminer</option><option value="1">1 voie</option><option value="2">2 voies</option><option value="3plus">3 voies ou plus</option></select></label></div>
+        <div class="inline-actions"><button id="applyPlanAnalysisBtn" class="secondary" type="button">Reporter dans le dossier</button></div>
+        <div id="planAnalysisStatus" class="geo-status neutral">Aucune conclusion de plan enregistrée.</div>
+      </details>
+    </section>
+
+    <section class="card">
+      <details class="heritage-details">
+        <summary>Recherche documentaire / veille</summary>
+        <div class="section-head"><h2>Recherche Pappers Politique</h2><span class="mini-badge">Source complémentaire</span></div>
+        <div class="doc-search-grid">
+          <label>Commune<input id="docSearchCommune" type="text" placeholder="Woippy" /></label>
+          <label>Mots-clés<input id="docSearchTerms" type="text" placeholder="RLPi, enseigne, publicité, arrêté…" /></label>
+          <button id="docSearchBtn" class="secondary" type="button">Rechercher</button>
+        </div>
+        <div id="docSearchStatus" class="geo-status neutral">La recherche publique ouvre les documents Pappers correspondant à la commune et aux mots-clés.</div>
+        <p class="research-disclaimer">Pappers reste une source documentaire de veille. Le moteur réglementaire Atlas continue de s’appuyer sur les documents officiels et opposables. L’API Pappers n’est pas appelée directement : son accès nécessite une offre/API dédiée et une clé ne doit pas être exposée dans GitHub Pages.</p>
+        <p class="source-links"><a href="https://politique.pappers.fr/api" target="_blank" rel="noopener">Voir l’API Pappers Politique</a> · <a href="https://politique.pappers.fr/" target="_blank" rel="noopener">Ouvrir Pappers Politique</a></p>
+      </details>
     </section>
 
     <section class="card">
@@ -57,7 +105,7 @@
       <div class="result-head"><h2>Résultat réglementaire</h2><span id="statusBadge" class="badge neutral">En attente</span></div>
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div><div id="checksResult" class="checks-result"></div>
       <div class="checks" id="reportActions"><button id="saveCaseBtn" class="primary" type="button">Enregistrer le dossier</button><button id="printBtn" class="secondary" type="button">Imprimer / PDF</button><button id="copyReportBtn" class="secondary" type="button">Copier la fiche</button></div>
-      <details><summary>Référentiel et limites de la v1.3.1</summary><p>Atlas v1.3.1 corrige la chaîne de traitement des lieux et établissements : les propriétés POI hétérogènes de la Géoplateforme sont normalisées avant le calcul du périmètre et avant l’événement de géolocalisation.</p><p>Les résultats sont aussi reclassés selon la commune et l’intention de recherche afin de faire remonter les lieux pertinents, comme l’Aire de Service de Saint-Rémy à Woippy.</p><p>Un POI fournit toujours un point indicatif : la parcelle et l’implantation exacte du dispositif doivent être contrôlées avant décision.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
+      <details><summary>Référentiel et limites de la v1.4</summary><p>Atlas v1.4 ajoute le nombre de voies bordant l’activité, l’import local de plans avec analyse guidée, et une recherche documentaire Pappers.</p><p>La lecture des plans est assistée mais pas interprétée automatiquement par une IA : un backend sécurisé serait nécessaire pour envoyer et analyser un document sans exposer de clé API dans le site public.</p><p>La recherche Pappers est documentaire et séparée du verdict réglementaire. Les documents opposables et sources officielles restent prioritaires.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
     </section>
 
     <section class="card">
@@ -65,6 +113,6 @@
       <div id="historyList" class="checks-result"><div class="heritage-empty"><strong>Aucun dossier enregistré.</strong><span>L’historique est conservé uniquement dans ce navigateur.</span></div></div>
     </section>
   </main>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.3.1"></script><script src="heritage.js?v=1.3.1"></script><script src="geocode.js?v=1.3.1"></script><script src="app.js?v=1.3.1"></script><script src="export.js?v=1.3.1"></script><script src="history.js?v=1.3.1"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.4"></script><script src="heritage.js?v=1.4"></script><script src="geocode.js?v=1.4"></script><script src="app.js?v=1.4"></script><script src="export.js?v=1.4"></script><script src="history.js?v=1.4"></script><script src="v14.js?v=1.4"></script>
 </body>
 </html>
