@@ -1,10 +1,13 @@
-// Atlas v1.1 — export de la fiche d'instruction
+// Atlas v1.4 — export de la fiche d'instruction
 function atlasReportText() {
   const value = (id) => document.getElementById(id)?.textContent?.trim() || "—";
-  const address = document.getElementById("address")?.value?.trim() || "Adresse non renseignée";
-  const city = document.getElementById("city")?.value?.trim() || "Commune non renseignée";
+  const field = (id) => document.getElementById(id)?.value?.trim() || "—";
+  const address = field("address") === "—" ? "Adresse non renseignée" : field("address");
+  const city = field("city") === "—" ? "Commune non renseignée" : field("city");
   const device = document.getElementById("deviceType")?.selectedOptions?.[0]?.textContent || "—";
   const mounting = document.getElementById("mounting")?.selectedOptions?.[0]?.textContent || "—";
+  const roads = document.getElementById("borderingRoads")?.selectedOptions?.[0]?.textContent || "À déterminer";
+  const roadsConfidence = document.getElementById("roadsConfidence")?.selectedOptions?.[0]?.textContent || "—";
   const rows = [...document.querySelectorAll("#checksResult .check-row")].map((node) => {
     const title = node.querySelector("strong")?.textContent?.trim() || "Contrôle";
     const text = node.querySelector("span")?.textContent?.trim() || "";
@@ -20,6 +23,9 @@ function atlasReportText() {
     `Zone publicité : ${document.getElementById("zp")?.value || "À déterminer"}`,
     `Zone enseigne : ${document.getElementById("ze")?.value || "À déterminer"}`,
     `Confiance zonage : ${value("zoneConfidence")}`,
+    `Voies bordant l’activité : ${roads}`,
+    `Confirmation des voies : ${roadsConfidence}`,
+    `Observation voies : ${field("roadsNote")}`,
     `Type : ${device}`,
     `Implantation : ${mounting}`,
     `Conclusion : ${value("statusBadge")}`,
