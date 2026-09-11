@@ -13,14 +13,14 @@
       <h1>Atlas</h1>
       <p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p>
     </div>
-    <span class="version">v0.4</span>
+    <span class="version">v0.5</span>
   </header>
 
   <main class="layout">
     <section class="card">
       <div class="section-head">
         <h2>Localisation</h2>
-        <span class="mini-badge">Adresse + carte + parcelle</span>
+        <span class="mini-badge">Zonage assisté + niveau de confiance</span>
       </div>
 
       <div class="address-search">
@@ -35,11 +35,12 @@
 
       <div id="geoStatus" class="geo-status neutral">Saisissez une adresse : Atlas recherchera automatiquement la commune et les coordonnées.</div>
 
-      <div class="geo-summary four">
+      <div class="geo-summary five">
         <div><span>Code postal</span><strong id="postcode">—</strong></div>
         <div><span>Coordonnées</span><strong id="coords">—</strong></div>
         <div><span>Parcelle</span><strong id="parcel" class="scope-badge neutral">—</strong></div>
         <div><span>Périmètre</span><strong id="rlpiScope" class="scope-badge neutral">À déterminer</strong></div>
+        <div><span>Confiance zonage</span><strong id="zoneConfidence" class="scope-badge neutral">À confirmer</strong></div>
       </div>
 
       <div id="map" class="map" aria-label="Carte de localisation"></div>
@@ -49,9 +50,9 @@
           <input id="city" type="text" placeholder="Woippy" />
         </label>
         <div class="info-field">
-          <span>Zonage assisté</span>
-          <strong>ZE calculée automatiquement</strong>
-          <small>Atlas déduit la ZE dès que la ZP est connue et reconnaît certains secteurs d’activités nommés explicitement dans le RLPi.</small>
+          <span>Zonage assisté v0.5</span>
+          <strong>Détection prudente, jamais forcée</strong>
+          <small>Atlas reconnaît les secteurs explicitement nommés dans le règlement et signale le niveau de confiance. En cas de doute, la ZP reste à confirmer sur le plan officiel.</small>
         </div>
         <label>Zone publicité / préenseigne
           <select id="zp">
@@ -69,6 +70,7 @@
         </label>
       </div>
       <div id="zoneStatus" class="geo-status neutral">La ZE est automatiquement déduite dès qu’une ZP est connue.</div>
+      <p class="source-links"><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_arret/Zonage_pubs_V5_compressed.pdf" target="_blank" rel="noopener">Ouvrir le plan officiel des zonages</a></p>
     </section>
 
     <section class="card">
@@ -94,30 +96,14 @@
             <option value="window">Intérieur de vitrine</option>
           </select>
         </label>
-        <label>Largeur du dispositif (m)
-          <input id="width" type="number" min="0" step="0.01" placeholder="2" />
-        </label>
-        <label>Hauteur du dispositif (m)
-          <input id="height" type="number" min="0" step="0.01" placeholder="3" />
-        </label>
-        <label>Hauteur totale au sol (m)
-          <input id="totalHeight" type="number" min="0" step="0.01" placeholder="5" />
-        </label>
-        <label>Nombre de dispositifs
-          <input id="count" type="number" min="1" step="1" value="1" />
-        </label>
-        <label>Linéaire visible de l’unité foncière (m)
-          <input id="frontage" type="number" min="0" step="0.1" placeholder="Ex. 24" />
-        </label>
-        <label>Nombre d’activités sur l’unité foncière
-          <input id="activities" type="number" min="1" step="1" value="1" />
-        </label>
-        <label>Surface de façade concernée (m²)
-          <input id="facadeSurface" type="number" min="0" step="0.1" placeholder="Ex. 250" />
-        </label>
-        <label>Saillie par rapport au mur (m)
-          <input id="projection" type="number" min="0" step="0.01" placeholder="Ex. 0.20" />
-        </label>
+        <label>Largeur du dispositif (m)<input id="width" type="number" min="0" step="0.01" placeholder="2" /></label>
+        <label>Hauteur du dispositif (m)<input id="height" type="number" min="0" step="0.01" placeholder="3" /></label>
+        <label>Hauteur totale au sol (m)<input id="totalHeight" type="number" min="0" step="0.01" placeholder="5" /></label>
+        <label>Nombre de dispositifs<input id="count" type="number" min="1" step="1" value="1" /></label>
+        <label>Linéaire visible de l’unité foncière (m)<input id="frontage" type="number" min="0" step="0.1" placeholder="Ex. 24" /></label>
+        <label>Nombre d’activités sur l’unité foncière<input id="activities" type="number" min="1" step="1" value="1" /></label>
+        <label>Surface de façade concernée (m²)<input id="facadeSurface" type="number" min="0" step="0.1" placeholder="Ex. 250" /></label>
+        <label>Saillie par rapport au mur (m)<input id="projection" type="number" min="0" step="0.01" placeholder="Ex. 0.20" /></label>
       </div>
       <div class="checks">
         <label><input id="lit" type="checkbox" /> Lumineux</label>
@@ -138,9 +124,10 @@
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
       <div id="checksResult" class="checks-result"></div>
       <details>
-        <summary>Référentiel et limites de la v0.4</summary>
-        <p>Atlas v0.4 ajoute la carte interactive, la recherche de parcelle cadastrale et la déduction automatique ZE à partir de la ZP. Certaines grandes zones d’activités explicitement nommées dans le RLPi peuvent être reconnues à partir de l’adresse.</p>
-        <p>La détection exhaustive des ZP par intersection avec les polygones officiels n’est pas encore disponible : quand Atlas ne peut pas conclure de façon fiable, la ZP reste à confirmer sur le plan officiel.</p>
+        <summary>Référentiel et limites de la v0.5</summary>
+        <p>Atlas v0.5 sépare le référentiel textuel des secteurs de zonage dans <code>data/zoning-sectors.json</code> et ajoute un niveau de confiance à chaque proposition automatique.</p>
+        <p>Une détection élevée correspond à un secteur explicitement nommé dans le règlement et retrouvé dans l’adresse. Une détection moyenne repose sur une règle communale générale. Sinon, Atlas demande une confirmation manuelle sur le plan officiel.</p>
+        <p>La couche SIG officielle exploitable directement en GeoJSON/WFS n’étant pas publiée dans les sources publiques identifiées, Atlas ne simule pas de faux polygones réglementaires.</p>
         <p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p>
       </details>
     </section>
