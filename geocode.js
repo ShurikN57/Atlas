@@ -24,18 +24,18 @@ function setGeoDetails(properties, coordinates) {
   const [lon, lat] = coordinates || [];
   geocodeState.lon = lon ?? null;
   geocodeState.lat = lat ?? null;
-  geocodeState.citycode = properties.citycode || null;
-  geocodeState.postcode = properties.postcode || null;
-  geocodeState.label = properties.label || null;
+  geocodeState.citycode = properties.citycode || properties.citycode_ || null;
+  geocodeState.postcode = properties.postcode || properties.postcode_ || null;
+  geocodeState.label = properties.label || properties.name || null;
 
-  const city = properties.city || properties.name || "";
+  const city = properties.city || properties.city_name || properties.name || "";
   if (document.getElementById("city")) document.getElementById("city").value = city;
-  if (document.getElementById("address")) document.getElementById("address").value = properties.label || document.getElementById("address").value;
+  if (document.getElementById("address")) document.getElementById("address").value = geocodeState.label || document.getElementById("address").value;
 
   const postcode = document.getElementById("postcode");
   const coords = document.getElementById("coords");
   const scope = document.getElementById("rlpiScope");
-  if (postcode) postcode.textContent = properties.postcode || "—";
+  if (postcode) postcode.textContent = geocodeState.postcode || "—";
   if (coords) coords.textContent = Number.isFinite(lat) && Number.isFinite(lon) ? `${lat.toFixed(6)}, ${lon.toFixed(6)}` : "—";
 
   const key = normalizeName(city);
@@ -51,6 +51,10 @@ function setGeoDetails(properties, coordinates) {
       scope.className = "scope-badge neutral";
     }
   }
+
+  document.dispatchEvent(new CustomEvent("atlas:geocoded", {
+    detail: { lat, lon, city, citycode: geocodeState.citycode, postcode: geocodeState.postcode, label: geocodeState.label }
+  }));
 }
 
 function renderSuggestions(features) {
@@ -66,11 +70,11 @@ function renderSuggestions(features) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "address-suggestion";
-    button.innerHTML = `<strong>${p.label || p.name || "Adresse"}</strong><span>${p.context || p.city || ""}</span>`;
+    button.innerHTML = `<strong>${p.label || p.name || "Adresse"}</strong><span>${p.context || p.city || p.city_name || ""}</span>`;
     button.addEventListener("click", () => {
       setGeoDetails(p, feature.geometry?.coordinates || []);
       box.hidden = true;
-      setGeoStatus("ok", "Adresse géocodée. Commune et coordonnées renseignées automatiquement.");
+      setGeoStatus("ok", "Adresse géocodée. Commune, coordonnées, carte et parcelle mises à jour.");
     });
     box.appendChild(button);
   });
@@ -87,7 +91,7 @@ async function geocodeAddress(showSuggestions = false) {
 
   setGeoStatus("loading", "Recherche de l’adresse…");
   try {
-    const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(query)}&limit=5`;
+    const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(query)}&index=address&limit=5`;
     const response = await fetch(url, { headers: { "Accept": "application/json" } });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
@@ -104,7 +108,7 @@ async function geocodeAddress(showSuggestions = false) {
       const first = features[0];
       setGeoDetails(first.properties || {}, first.geometry?.coordinates || []);
       renderSuggestions([]);
-      setGeoStatus("ok", "Adresse géocodée. Commune et coordonnées renseignées automatiquement.");
+      setGeoStatus("ok", "Adresse géocodée. Commune, coordonnées, carte et parcelle mises à jour.");
     }
     return features;
   } catch (error) {
