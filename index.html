@@ -9,7 +9,7 @@
   <meta http-equiv="Expires" content="0" />
   <title>Atlas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="styles.css?v=0.7.1" />
+  <link rel="stylesheet" href="styles.css?v=0.8" />
 </head>
 <body>
   <header class="topbar">
@@ -17,20 +17,20 @@
       <h1>Atlas</h1>
       <p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p>
     </div>
-    <span class="version">v0.7.1</span>
+    <span class="version">v0.8</span>
   </header>
 
   <main class="layout">
     <section class="card">
       <div class="section-head">
         <h2>Localisation</h2>
-        <span class="mini-badge">Parcelle + fiabilité du zonage</span>
+        <span class="mini-badge">Adresse + parcelle + fiabilité</span>
       </div>
 
       <div class="address-search">
         <label>Adresse
           <div class="address-row">
-            <input id="address" type="text" autocomplete="off" placeholder="Ex. route de Thionville, Woippy" />
+            <input id="address" type="text" autocomplete="off" placeholder="Ex. 7 avenue de Thionville, Woippy" />
             <button id="geocodeBtn" class="secondary" type="button">Rechercher</button>
           </div>
           <div id="addressSuggestions" class="address-suggestions" hidden></div>
@@ -42,6 +42,7 @@
       <div class="geo-summary six">
         <div><span>Code postal</span><strong id="postcode">—</strong></div>
         <div><span>Coordonnées</span><strong id="coords">—</strong></div>
+        <div><span>Précision adresse</span><strong id="addressPrecision" class="scope-badge neutral">À déterminer</strong></div>
         <div><span>Parcelle</span><strong id="parcel" class="scope-badge neutral">—</strong></div>
         <div><span>Périmètre</span><strong id="rlpiScope" class="scope-badge neutral">À déterminer</strong></div>
         <div><span>Confiance zonage</span><strong id="zoneConfidence" class="scope-badge neutral">À confirmer</strong></div>
@@ -55,9 +56,9 @@
           <input id="city" type="text" placeholder="Woippy" />
         </label>
         <div class="info-field">
-          <span>Zonage assisté v0.7</span>
-          <strong>La parcelle reste la référence du dossier</strong>
-          <small>Une détection par nom de rue ou secteur reste une proposition à confirmer. Le niveau élevé est réservé à une intersection géographique fiable avec une couche officielle.</small>
+          <span>Zonage assisté v0.8</span>
+          <strong>Adresse précise et parcelle distinguées des recherches de voie</strong>
+          <small>Avec un numéro exact, la parcelle est considérée comme une référence fiable. Une recherche par nom de voie ou secteur reste indicative.</small>
         </div>
         <label>Zone publicité / préenseigne
           <select id="zp">
@@ -84,50 +85,29 @@
         <span id="heritageBadge" class="scope-badge neutral">À rechercher</span>
       </div>
       <div id="heritageStatus" class="geo-status neutral">Le contrôle se lance automatiquement après sélection d’une adresse.</div>
-      <div class="heritage-grid">
-        <div>
-          <span class="heritage-title">AC1</span>
-          <strong>Monuments historiques / abords</strong>
-          <small>Contrôle des servitudes patrimoniales liées aux monuments historiques.</small>
+      <details id="heritageDetails" class="heritage-details">
+        <summary>Afficher le détail AC1 / AC2 / AC4</summary>
+        <div class="heritage-grid">
+          <div><span class="heritage-title">AC1</span><strong>Monuments historiques / abords</strong><small>Contrôle des servitudes patrimoniales liées aux monuments historiques.</small></div>
+          <div><span class="heritage-title">AC2</span><strong>Sites inscrits / classés</strong><small>Contrôle des protections relatives aux monuments naturels et sites.</small></div>
+          <div><span class="heritage-title">AC4</span><strong>Sites patrimoniaux remarquables</strong><small>Contrôle des SPR, PVAP et protections patrimoniales associées.</small></div>
         </div>
-        <div>
-          <span class="heritage-title">AC2</span>
-          <strong>Sites inscrits / classés</strong>
-          <small>Contrôle des protections relatives aux monuments naturels et sites.</small>
+        <div id="heritageResults" class="heritage-results">
+          <div class="heritage-empty"><strong>Aucune recherche effectuée.</strong><span>Sélectionnez une adresse pour interroger les servitudes patrimoniales du Géoportail de l’Urbanisme.</span></div>
         </div>
-        <div>
-          <span class="heritage-title">AC4</span>
-          <strong>Sites patrimoniaux remarquables</strong>
-          <small>Contrôle des SPR, PVAP et protections patrimoniales associées.</small>
-        </div>
-      </div>
-      <div id="heritageResults" class="heritage-results">
-        <div class="heritage-empty"><strong>Aucune recherche effectuée.</strong><span>Sélectionnez une adresse pour interroger les servitudes patrimoniales du Géoportail de l’Urbanisme.</span></div>
-      </div>
-      <p class="source-links"><a href="https://www.geoportail-urbanisme.gouv.fr/" target="_blank" rel="noopener">Ouvrir le Géoportail de l’Urbanisme</a></p>
+        <p class="source-links"><a href="https://www.geoportail-urbanisme.gouv.fr/" target="_blank" rel="noopener">Ouvrir le Géoportail de l’Urbanisme</a></p>
+      </details>
     </section>
 
     <section class="card">
       <h2>Dispositif</h2>
       <div class="grid two">
         <label>Type
-          <select id="deviceType">
-            <option value="enseigne">Enseigne</option>
-            <option value="publicite">Publicité</option>
-            <option value="preenseigne">Préenseigne</option>
-          </select>
+          <select id="deviceType"><option value="enseigne">Enseigne</option><option value="publicite">Publicité</option><option value="preenseigne">Préenseigne</option></select>
         </label>
         <label>Implantation
           <select id="mounting">
-            <option value="ground">Scellée / installée au sol</option>
-            <option value="wall">Parallèle / apposée sur mur</option>
-            <option value="perpendicular">Perpendiculaire au mur</option>
-            <option value="fence">Clôture</option>
-            <option value="roof">Toiture / terrasse</option>
-            <option value="street_furniture">Mobilier urbain</option>
-            <option value="tarp">Bâche</option>
-            <option value="construction">Palissade de chantier</option>
-            <option value="window">Intérieur de vitrine</option>
+            <option value="ground">Scellée / installée au sol</option><option value="wall">Parallèle / apposée sur mur</option><option value="perpendicular">Perpendiculaire au mur</option><option value="fence">Clôture</option><option value="roof">Toiture / terrasse</option><option value="street_furniture">Mobilier urbain</option><option value="tarp">Bâche</option><option value="construction">Palissade de chantier</option><option value="window">Intérieur de vitrine</option>
           </select>
         </label>
         <label>Largeur du dispositif (m)<input id="width" type="number" min="0" step="0.01" placeholder="2" /></label>
@@ -140,37 +120,29 @@
         <label>Saillie par rapport au mur (m)<input id="projection" type="number" min="0" step="0.01" placeholder="Ex. 0.20" /></label>
       </div>
       <div class="checks">
-        <label><input id="lit" type="checkbox" /> Lumineux</label>
-        <label><input id="digital" type="checkbox" /> Numérique</label>
-        <label><input id="fuelStation" type="checkbox" /> Station-service — affichage des tarifs carburants</label>
-        <label><input id="emergency" type="checkbox" /> Service d’urgence</label>
-        <label><input id="noFacadeSign" type="checkbox" /> Aucune enseigne possible sur façade</label>
-        <label><input id="motorway" type="checkbox" /> Visible depuis une autoroute / voie express</label>
+        <label><input id="lit" type="checkbox" /> Lumineux</label><label><input id="digital" type="checkbox" /> Numérique</label><label><input id="fuelStation" type="checkbox" /> Station-service — affichage des tarifs carburants</label><label><input id="emergency" type="checkbox" /> Service d’urgence</label><label><input id="noFacadeSign" type="checkbox" /> Aucune enseigne possible sur façade</label><label><input id="motorway" type="checkbox" /> Visible depuis une autoroute / voie express</label>
       </div>
       <button id="analyzeBtn" class="primary">Analyser</button>
     </section>
 
     <section class="card result-card">
-      <div class="result-head">
-        <h2>Résultat réglementaire</h2>
-        <span id="statusBadge" class="badge neutral">En attente</span>
-      </div>
+      <div class="result-head"><h2>Résultat réglementaire</h2><span id="statusBadge" class="badge neutral">En attente</span></div>
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
       <div id="checksResult" class="checks-result"></div>
       <details>
-        <summary>Référentiel et limites de la v0.7</summary>
-        <p>Atlas v0.7 ajoute un contrôle automatique des principales servitudes patrimoniales au point géocodé : AC1 (monuments historiques), AC2 (sites inscrits/classés) et AC4 / AC4 bis (sites patrimoniaux remarquables).</p>
-        <p>Les données proviennent du Géoportail de l’Urbanisme et restent informatives. Une absence de résultat ne vaut pas preuve juridique d’absence de protection : les données opposables, l’avis de l’ABF et les documents officiels restent à vérifier lorsqu’ils sont requis.</p>
-        <p>Le zonage RLPi conserve la logique prudente de la v0.6 : les indices textuels restent à confirmer sur le plan officiel.</p>
+        <summary>Référentiel et limites de la v0.8</summary>
+        <p>Atlas v0.8 distingue les adresses précises avec numéro des recherches par voie ou secteur. La parcelle obtenue après une adresse précise est considérée comme une meilleure référence géographique ; une recherche sans numéro reste indicative.</p>
+        <p>Le bloc patrimonial est désormais compact lorsqu’aucune protection AC1 / AC2 / AC4 n’est détectée, et s’ouvre automatiquement lorsqu’une protection ou une erreur de contrôle nécessite l’attention.</p>
+        <p>L’absence de résultat patrimonial reste informative et ne constitue pas une preuve juridique d’absence de protection.</p>
         <p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p>
       </details>
     </section>
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="zoning.js?v=0.7.1"></script>
-  <script src="heritage.js?v=0.7.1"></script>
-  <script src="geocode.js?v=0.7.1"></script>
-  <script src="app.js?v=0.7.1"></script>
+  <script src="zoning.js?v=0.8"></script>
+  <script src="heritage.js?v=0.8"></script>
+  <script src="geocode.js?v=0.8"></script>
+  <script src="app.js?v=0.8"></script>
 </body>
 </html>
