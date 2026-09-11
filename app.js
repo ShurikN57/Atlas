@@ -60,8 +60,7 @@ function analyzeAdvertising(ctx, results) {
     const digital = zone.digital;
     if (!digital?.allowed) {
       results.push(row("bad", "Numérique", `Publicité numérique interdite en ${ctx.zp} — ${digital?.ref || "RLPi"}`));
-      severity = "bad";
-      return severity;
+      return "bad";
     }
     results.push(row("ok", "Numérique", `Autorisé en ${ctx.zp} sous conditions — ${digital.ref}`));
     severity = worsen(severity, checkLimit(results, "Surface numérique", ctx.surface, digital.maxSurface, "m²", digital.ref));
@@ -122,7 +121,7 @@ function analyzeSign(ctx, results) {
   if (ctx.mounting === "window") {
     const win = RULES.general.windowLight;
     if (!ctx.lit) {
-      results.push(row("warn", "Vitrine", "Le contrôle automatisé v0.2 vise les supports lumineux visibles depuis la voie publique."));
+      results.push(row("warn", "Vitrine", "Le contrôle automatisé vise les supports lumineux visibles depuis la voie publique."));
       return "warn";
     }
     severity = worsen(severity, checkLimit(results, "Surface cumulée vitrine", ctx.surface * ctx.count, win.maxCumulativeSurface, "m²", win.ref));
@@ -150,9 +149,7 @@ function analyzeSign(ctx, results) {
     } else {
       results.push(row("ok", "Numérique", `Enseigne numérique admise en ${ctx.ze} sous conditions — ${digital.ref}`));
       severity = worsen(severity, checkLimit(results, "Surface numérique", ctx.surface, digital.maxSurface, "m²", digital.ref));
-      if (ctx.mounting === "ground") {
-        severity = worsen(severity, checkLimit(results, "Hauteur numérique", ctx.totalHeight, digital.maxGroundHeight, "m", digital.ref));
-      }
+      if (ctx.mounting === "ground") severity = worsen(severity, checkLimit(results, "Hauteur numérique", ctx.totalHeight, digital.maxGroundHeight, "m", digital.ref));
     }
   }
 
@@ -178,10 +175,8 @@ function analyzeSign(ctx, results) {
         severity = "bad";
       } else {
         const grouped = ctx.activities >= 2;
-        const maxSurface = grouped ? rule.groupedMaxSurface : rule.largeMaxSurface;
-        const maxHeight = grouped ? rule.groupedMaxHeight : rule.largeMaxHeight;
-        severity = worsen(severity, checkLimit(results, grouped ? "Surface cumulée" : "Surface", ctx.surface, maxSurface, "m²", rule.ref));
-        severity = worsen(severity, checkLimit(results, "Hauteur", ctx.totalHeight, maxHeight, "m", rule.ref));
+        severity = worsen(severity, checkLimit(results, grouped ? "Surface cumulée" : "Surface", ctx.surface, grouped ? rule.groupedMaxSurface : rule.largeMaxSurface, "m²", rule.ref));
+        severity = worsen(severity, checkLimit(results, "Hauteur", ctx.totalHeight, grouped ? rule.groupedMaxHeight : rule.largeMaxHeight, "m", rule.ref));
       }
     }
     if (ctx.count > 1) {
@@ -193,13 +188,8 @@ function analyzeSign(ctx, results) {
   if (ctx.mounting === "wall") {
     const largeFacade = ctx.facadeSurface > 200;
     const maxH = largeFacade ? (rule.maxHeightLargeFacade ?? rule.letterHeightLargeFacade) : (rule.maxHeight ?? rule.letterHeight);
-    if (ctx.height && maxH != null) {
-      const label = rule.letterHeight != null ? "Hauteur du lettrage" : "Hauteur de l’enseigne";
-      severity = worsen(severity, checkLimit(results, label, ctx.height, maxH, "m", rule.ref));
-    }
-    if (ctx.projection && rule.maxProjection != null) {
-      severity = worsen(severity, checkLimit(results, "Saillie", ctx.projection, rule.maxProjection, "m", rule.ref));
-    }
+    if (ctx.height && maxH != null) severity = worsen(severity, checkLimit(results, rule.letterHeight != null ? "Hauteur du lettrage" : "Hauteur de l’enseigne", ctx.height, maxH, "m", rule.ref));
+    if (ctx.projection && rule.maxProjection != null) severity = worsen(severity, checkLimit(results, "Saillie", ctx.projection, rule.maxProjection, "m", rule.ref));
   }
 
   if (ctx.mounting === "perpendicular") {
@@ -216,8 +206,7 @@ function analyzeSign(ctx, results) {
       results.push(row("bad", "Condition clôture", `En ${ctx.ze}, l’enseigne sur clôture n’est admise que si aucune enseigne ne peut être installée sur la façade — ${rule.ref}`));
       severity = "bad";
     }
-    const maxSurface = ctx.activities >= 2 ? rule.groupedMaxSurface : rule.maxSurface;
-    severity = worsen(severity, checkLimit(results, ctx.activities >= 2 ? "Surface cumulée" : "Surface", ctx.surface, maxSurface, "m²", rule.ref));
+    severity = worsen(severity, checkLimit(results, ctx.activities >= 2 ? "Surface cumulée" : "Surface", ctx.surface, ctx.activities >= 2 ? rule.groupedMaxSurface : rule.maxSurface, "m²", rule.ref));
   }
 
   if (ctx.lit) {
@@ -228,13 +217,66 @@ function analyzeSign(ctx, results) {
   return severity;
 }
 
+function addLocationAndHeritageChecks(ctx, results) {
+  let severity = "ok";
+  let inconclusive = false;
+
+  const geo = window.AtlasGeo || {};
+  if (geo.precision === "exact") {
+    results.push(row("ok", "Adresse / parcelle", `Adresse précise${window.AtlasZoning?.getParcelId?.() ? ` · parcelle ${window.AtlasZoning.getParcelId()}` : ""}.`));
+  } else if (geo.precision === "street" || geo.precision === "approx") {
+    results.push(row("warn", "Adresse / parcelle", "Localisation par voie ou secteur : la parcelle reste indicative. Confirmer l’implantation exacte avant de conclure."));
+    severity = "warn";
+    inconclusive = true;
+  } else {
+    results.push(row("warn", "Adresse / parcelle", "Adresse précise non vérifiée. Géocoder le dossier avant de conclure."));
+    severity = "warn";
+    inconclusive = true;
+  }
+
+  const confidence = $("zoneConfidence")?.textContent || "";
+  if (!ctx.zp || !ctx.ze) {
+    results.push(row("warn", "Fiabilité du zonage", "Zonage incomplet : impossible de conclure automatiquement tant que la ZP/ZE n’est pas déterminée."));
+    severity = "warn";
+    inconclusive = true;
+  } else if (confidence.startsWith("Élevée")) {
+    results.push(row("ok", "Fiabilité du zonage", `${confidence}.`));
+  } else if (confidence.startsWith("Moyenne")) {
+    results.push(row("warn", "Fiabilité du zonage", `${confidence}. Confirmer la zone sur le plan officiel avant décision.`));
+    severity = "warn";
+  } else {
+    results.push(row("warn", "Fiabilité du zonage", `${confidence || "À confirmer"}. Le plan officiel doit être vérifié avant décision.`));
+    severity = "warn";
+    inconclusive = true;
+  }
+
+  const heritage = window.AtlasHeritage?.state;
+  if (!heritage || heritage.status === "idle" || heritage.status === "loading") {
+    results.push(row("warn", "Protection patrimoniale", "Contrôle AC1 / AC2 / AC4 non terminé. Impossible de conclure automatiquement."));
+    severity = "warn";
+    inconclusive = true;
+  } else if (heritage.status === "error") {
+    results.push(row("warn", "Protection patrimoniale", "Service patrimonial indisponible : vérification manuelle requise sur le Géoportail de l’Urbanisme."));
+    severity = "warn";
+    inconclusive = true;
+  } else if (heritage.protections?.length) {
+    const cats = [...new Set(heritage.protections.map((p) => p.category))].join(", ");
+    results.push(row("warn", "Protection patrimoniale", `${heritage.protections.length} protection(s) détectée(s) (${cats}). Contrôle complémentaire / avis patrimonial requis avant décision.`));
+    severity = "warn";
+  } else {
+    results.push(row("ok", "Protection patrimoniale", "Aucune servitude AC1 / AC2 / AC4 détectée au point par le Géoportail de l’Urbanisme. Résultat informatif, à rapprocher des documents opposables."));
+  }
+
+  return { severity, inconclusive };
+}
+
 function analyze() {
   const results = [];
   let severity = "ok";
+  let inconclusive = false;
 
   if (!RULES) {
-    results.push(row("bad", "Référentiel", "Le fichier des règles n’a pas pu être chargé. Rechargez la page."));
-    $("checksResult").innerHTML = results.join("");
+    $("checksResult").innerHTML = row("bad", "Référentiel", "Le fichier des règles n’a pas pu être chargé. Rechargez la page.");
     return;
   }
 
@@ -243,20 +285,11 @@ function analyze() {
     mounting: $("mounting").value,
     ze: $("ze").value,
     zp: $("zp").value,
-    width: num("width"),
-    height: num("height"),
-    totalHeight: num("totalHeight"),
-    count: num("count") || 1,
-    frontage: num("frontage"),
-    activities: num("activities") || 1,
-    facadeSurface: num("facadeSurface"),
-    projection: num("projection"),
-    lit: $("lit").checked,
-    digital: $("digital").checked,
-    fuelStation: $("fuelStation").checked,
-    emergency: $("emergency").checked,
-    noFacadeSign: $("noFacadeSign").checked,
-    motorway: $("motorway").checked
+    width: num("width"), height: num("height"), totalHeight: num("totalHeight"),
+    count: num("count") || 1, frontage: num("frontage"), activities: num("activities") || 1,
+    facadeSurface: num("facadeSurface"), projection: num("projection"),
+    lit: $("lit").checked, digital: $("digital").checked, fuelStation: $("fuelStation").checked,
+    emergency: $("emergency").checked, noFacadeSign: $("noFacadeSign").checked, motorway: $("motorway").checked
   };
   ctx.surface = ctx.width * ctx.height;
 
@@ -267,18 +300,20 @@ function analyze() {
     results.push(row("ok", "Surface calculée", `${ctx.surface.toFixed(2)} m²`));
   }
 
-  if (ctx.type === "enseigne") {
-    severity = worsen(severity, analyzeSign(ctx, results));
-  } else {
-    severity = worsen(severity, analyzeAdvertising(ctx, results));
-  }
+  if (ctx.type === "enseigne") severity = worsen(severity, analyzeSign(ctx, results));
+  else severity = worsen(severity, analyzeAdvertising(ctx, results));
+
+  const contextCheck = addLocationAndHeritageChecks(ctx, results);
+  severity = worsen(severity, contextCheck.severity);
+  inconclusive = contextCheck.inconclusive;
 
   if (ctx.motorway) {
     results.push(row("warn", "Autoroute / voie express", "Contrôle complémentaire requis au titre du Code de la route et des règles nationales de visibilité. Le RLPi local ne suffit pas à conclure."));
     severity = worsen(severity, "warn");
+    inconclusive = true;
   }
 
-  results.push(row("warn", "Portée de l’analyse", "Pré-analyse RLPi uniquement : vérifier également le Code de l’environnement, les protections patrimoniales, les autorisations nécessaires et les particularités du site."));
+  results.push(row("warn", "Portée de l’analyse", "Pré-analyse automatisée : vérifier également les règles nationales, les autorisations nécessaires et les particularités du site."));
   severity = worsen(severity, "warn");
 
   const city = $("city").value.trim() || "Commune non renseignée";
@@ -287,8 +322,19 @@ function analyze() {
   $("checksResult").innerHTML = results.join("");
 
   const badge = $("statusBadge");
-  badge.className = `badge ${severity}`;
-  badge.textContent = severity === "bad" ? "Non conforme / à corriger" : severity === "warn" ? "Conforme sous réserves / à vérifier" : "Pré-analyse conforme";
+  if (severity === "bad") {
+    badge.className = "badge bad";
+    badge.textContent = "Non conforme / à corriger";
+  } else if (inconclusive) {
+    badge.className = "badge neutral";
+    badge.textContent = "Impossible de conclure automatiquement";
+  } else if (severity === "warn") {
+    badge.className = "badge warn";
+    badge.textContent = "Conforme sous réserves / à vérifier";
+  } else {
+    badge.className = "badge ok";
+    badge.textContent = "Conforme RLPi";
+  }
 }
 
 $("analyzeBtn").addEventListener("click", analyze);
