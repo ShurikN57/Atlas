@@ -3,19 +3,25 @@ import fs from 'node:fs/promises';
 const tests = JSON.parse(await fs.readFile(new URL('../data/test-cases.json', import.meta.url), 'utf8'));
 const indexHtml = await fs.readFile(new URL('../index.html', import.meta.url), 'utf8');
 const appJs = await fs.readFile(new URL('../app.js', import.meta.url), 'utf8');
+const exportJs = await fs.readFile(new URL('../export.js', import.meta.url), 'utf8');
 
 function requireText(source, needle, label) {
   if (!source.includes(needle)) throw new Error(`Contrôle statique manquant : ${label}`);
 }
 
 function runStaticChecks() {
-  requireText(indexHtml, 'v1.0', 'version v1.0');
+  requireText(indexHtml, 'v1.1', 'version v1.1');
   requireText(indexHtml, 'id="outsideAgglomeration"', 'case hors agglomération');
   requireText(indexHtml, 'id="treeSupport"', 'case support sur arbre');
   requireText(appJs, 'function addNationalChecks', 'moteur de règles nationales');
   requireText(appJs, 'R.581-31', 'contrôle R.581-31');
   requireText(appJs, 'L.581-7', 'contrôle L.581-7');
-  console.log('✅ Contrôles statiques v1.0');
+  requireText(indexHtml, 'id="printBtn"', 'bouton impression/PDF');
+  requireText(indexHtml, 'id="copyReportBtn"', 'bouton copie fiche');
+  requireText(indexHtml, 'export.js?v=1.1', 'chargement export v1.1');
+  requireText(exportJs, 'function atlasReportText', 'générateur de fiche');
+  requireText(exportJs, 'window.print()', 'impression navigateur');
+  console.log('✅ Contrôles statiques v1.1');
 }
 
 function precisionOf(properties = {}) {
@@ -29,14 +35,13 @@ function precisionOf(properties = {}) {
 }
 
 async function json(url, timeoutMs = 10000) {
-  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.0' }, signal: AbortSignal.timeout(timeoutMs) });
+  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.1' }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
   return res.json();
 }
 
 async function runCase(test) {
-  const searchUrl = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(test.query)}&index=address&limit=5`;
-  const search = await json(searchUrl);
+  const search = await json(`https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(test.query)}&index=address&limit=5`);
   const feature = search.features?.[0];
   if (!feature) throw new Error('Aucun résultat de géocodage');
   const p = feature.properties || {};
@@ -49,14 +54,12 @@ async function runCase(test) {
   if (test.expected?.precision && precision !== test.expected.precision) throw new Error(`Précision attendue ${test.expected.precision}, reçue ${precision}`);
   if (test.expected?.precisionNot && precision === test.expected.precisionNot) throw new Error(`Précision ne devait pas être ${test.expected.precisionNot}`);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('Coordonnées absentes');
-
   let parcel = null;
   try {
     const parcelData = await json(`https://data.geopf.fr/geocodage/reverse?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}&index=parcel&limit=1`);
     const pp = parcelData.features?.[0]?.properties || {};
     parcel = pp.id || pp.parcel_id || pp.parcelle || pp.name || pp.label || null;
   } catch (error) { parcel = `indisponible (${error.message})`; }
-
   let heritage = 'non testé';
   try {
     const sup = await json(`https://www.geoportail-urbanisme.gouv.fr/api/feature-info/sup?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}`, 8000);
