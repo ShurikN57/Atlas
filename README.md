@@ -2,11 +2,12 @@
 
 Application web d’assistance à la pré-analyse des dispositifs de publicité, enseignes et préenseignes sur le territoire de l’Eurométropole de Metz.
 
-## Version actuelle — v1.2
+## Version actuelle — v1.3
 
 Atlas combine désormais :
 
 - géocodage d’adresse avec distinction adresse précise / voie indicative ;
+- recherche de lieux et établissements via l’index POI de la Géoplateforme ;
 - parcelle cadastrale ;
 - zonage RLPi avec niveau de confiance ;
 - contrôles patrimoniaux AC1 / AC2 / AC4 via le Géoportail de l’Urbanisme ;
@@ -15,6 +16,21 @@ Atlas combine désormais :
 - fiche de pré-analyse exportable ;
 - historique local des dossiers ;
 - tests automatiques GitHub Actions.
+
+## v1.3 — recherche de lieux / POI
+
+La v1.3 étend la localisation au-delà des seules adresses postales.
+
+Atlas interroge désormais en parallèle :
+
+- l’index `address` de la Géoplateforme ;
+- l’index `poi` pour les lieux, équipements et établissements.
+
+Les résultats sont réunis dans les mêmes suggestions et identifiés comme **Adresse** ou **Lieu / établissement**.
+
+Exemple de régression ajouté au self-test : **Aire de Saint-Rémy, Woippy**.
+
+Un POI reste une localisation indicative du site : il ne prouve pas l’implantation exacte du dispositif. La parcelle et le point précis doivent être contrôlés avant décision.
 
 ## v1.0 — règles nationales ciblées
 
@@ -75,6 +91,7 @@ Le workflow GitHub Actions **Atlas self-test** vérifie :
 
 - les adresses de référence ;
 - la précision du géocodage ;
+- la recherche POI de l’Aire de Saint-Rémy à Woippy ;
 - les services parcelle / patrimoine ;
 - la présence des fonctions critiques de la version courante.
 
@@ -96,13 +113,14 @@ https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000
 
 - `index.html` : interface ;
 - `styles.css` : présentation responsive ;
-- `geocode.js` : adresse et précision ;
+- `geocode.js` : adresses, lieux/POI et précision ;
 - `zoning.js` : carte, parcelle et zonage ;
 - `heritage.js` : protections patrimoniales ;
 - `app.js` : moteur RLPi + contrôles nationaux ciblés ;
 - `export.js` : fiche d’instruction ;
 - `history.js` : historique local ;
 - `scripts/selftest.mjs` : tests automatiques ;
+- `data/test-cases.json` : cas de régression adresse / POI ;
 - `data/rules.json` : règles structurées ;
 - `data/zoning-sectors.json` : référentiel textuel du zonage.
 
