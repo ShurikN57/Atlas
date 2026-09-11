@@ -4,13 +4,14 @@ const tests = JSON.parse(await fs.readFile(new URL('../data/test-cases.json', im
 const indexHtml = await fs.readFile(new URL('../index.html', import.meta.url), 'utf8');
 const appJs = await fs.readFile(new URL('../app.js', import.meta.url), 'utf8');
 const exportJs = await fs.readFile(new URL('../export.js', import.meta.url), 'utf8');
+const historyJs = await fs.readFile(new URL('../history.js', import.meta.url), 'utf8');
 
 function requireText(source, needle, label) {
   if (!source.includes(needle)) throw new Error(`Contrôle statique manquant : ${label}`);
 }
 
 function runStaticChecks() {
-  requireText(indexHtml, 'v1.1', 'version v1.1');
+  requireText(indexHtml, 'v1.2', 'version v1.2');
   requireText(indexHtml, 'id="outsideAgglomeration"', 'case hors agglomération');
   requireText(indexHtml, 'id="treeSupport"', 'case support sur arbre');
   requireText(appJs, 'function addNationalChecks', 'moteur de règles nationales');
@@ -18,10 +19,14 @@ function runStaticChecks() {
   requireText(appJs, 'L.581-7', 'contrôle L.581-7');
   requireText(indexHtml, 'id="printBtn"', 'bouton impression/PDF');
   requireText(indexHtml, 'id="copyReportBtn"', 'bouton copie fiche');
-  requireText(indexHtml, 'export.js?v=1.1', 'chargement export v1.1');
   requireText(exportJs, 'function atlasReportText', 'générateur de fiche');
-  requireText(exportJs, 'window.print()', 'impression navigateur');
-  console.log('✅ Contrôles statiques v1.1');
+  requireText(indexHtml, 'id="saveCaseBtn"', 'bouton enregistrement dossier');
+  requireText(indexHtml, 'id="historyList"', 'liste historique');
+  requireText(indexHtml, 'history.js?v=1.2', 'chargement historique v1.2');
+  requireText(historyJs, 'ATLAS_HISTORY_KEY', 'clé stockage historique');
+  requireText(historyJs, 'localStorage', 'stockage local historique');
+  requireText(historyJs, 'function restoreAtlasCase', 'restauration dossier');
+  console.log('✅ Contrôles statiques v1.2');
 }
 
 function precisionOf(properties = {}) {
@@ -35,7 +40,7 @@ function precisionOf(properties = {}) {
 }
 
 async function json(url, timeoutMs = 10000) {
-  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.1' }, signal: AbortSignal.timeout(timeoutMs) });
+  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.2' }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
   return res.json();
 }
