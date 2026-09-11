@@ -2,7 +2,7 @@
 
 Application web d’assistance à la pré-analyse des dispositifs de publicité, enseignes et préenseignes sur le territoire de l’Eurométropole de Metz.
 
-## Version actuelle — v1.3
+## Version actuelle — v1.4
 
 Atlas combine désormais :
 
@@ -15,20 +15,57 @@ Atlas combine désormais :
 - première couche de règles nationales ciblées ;
 - fiche de pré-analyse exportable ;
 - historique local des dossiers ;
+- prise en compte du nombre de voies bordant l’activité ;
+- import local de plans PDF/JPG/PNG avec analyse guidée ;
+- recherche documentaire Pappers Politique ;
 - tests automatiques GitHub Actions.
+
+## v1.4 — voies, plans et recherche documentaire
+
+### Voies bordant l’activité
+
+Atlas permet de renseigner :
+
+- 1 voie ;
+- 2 voies ;
+- 3 voies ou plus ;
+- à déterminer.
+
+Un niveau de confirmation distingue une valeur déclarée d’une valeur confirmée par le plan cadastral et le plan de masse. Pour les enseignes au sol, Atlas ajoute un contrôle complémentaire fondé sur le principe « une enseigne par activité et par voie », sans remplacer la lecture du règlement applicable au secteur.
+
+Plusieurs files d’une même route ne sont pas comptées comme plusieurs voies. Les dessertes internes ne sont pas automatiquement considérées comme des voies distinctes bordant l’activité.
+
+### Import de plans
+
+Atlas accepte localement :
+
+- PDF ;
+- JPG / JPEG ;
+- PNG ;
+- WebP.
+
+Le plan est prévisualisé dans le navigateur et une checklist permet de formaliser la lecture : limites parcellaires, voies ouvertes à la circulation publique, voies internes et nombre de voies retenu.
+
+Le fichier n’est pas envoyé à un serveur par Atlas v1.4. L’analyse visuelle automatique par IA n’est donc pas activée : elle nécessiterait un backend sécurisé afin de ne jamais exposer une clé API dans GitHub Pages.
+
+### Recherche Pappers Politique
+
+Un bloc de recherche documentaire permet de saisir une commune et des mots-clés puis d’ouvrir une recherche publique ciblée sur les documents de `politique.pappers.fr/commune/document`.
+
+Cette fonction reste volontairement séparée du verdict réglementaire. L’API Pappers Politique n’est pas appelée directement depuis le navigateur car son accès nécessite une offre/API dédiée et une clé ne doit pas être exposée dans un dépôt ou un site public.
+
+## v1.3.1 — fiabilisation POI
+
+Les propriétés hétérogènes renvoyées par les POI sont normalisées avant traitement. La sélection d’un lieu déclenche correctement la chaîne carte → parcelle → périmètre → zonage → patrimoine et les résultats sont mieux classés selon la commune et l’intention de recherche.
 
 ## v1.3 — recherche de lieux / POI
 
-La v1.3 étend la localisation au-delà des seules adresses postales.
-
-Atlas interroge désormais en parallèle :
+Atlas interroge en parallèle :
 
 - l’index `address` de la Géoplateforme ;
 - l’index `poi` pour les lieux, équipements et établissements.
 
-Les résultats sont réunis dans les mêmes suggestions et identifiés comme **Adresse** ou **Lieu / établissement**.
-
-Exemple de régression ajouté au self-test : **Aire de Saint-Rémy, Woippy**.
+Exemple de régression : **Aire de Saint-Rémy, Woippy**.
 
 Un POI reste une localisation indicative du site : il ne prouve pas l’implantation exacte du dispositif. La parcelle et le point précis doivent être contrôlés avant décision.
 
@@ -41,27 +78,13 @@ La v1.0 ajoute des contrôles prudents sur :
 - certains dispositifs publicitaires non lumineux au sol visibles depuis autoroute, bretelle, route express, déviation ou voie hors agglomération — art. R.581-31 ;
 - autres cas de visibilité autoroutière : réserve et contrôle complémentaire au titre des règles nationales / Code de la route.
 
-Ces contrôles ne couvrent pas toutes les exceptions et dispositions nationales.
-
 ## v1.1 — fiche exportable
 
-Après analyse, Atlas permet :
-
-- **Imprimer / PDF** via la fonction d’impression du navigateur ;
-- **Copier la fiche** sous forme de synthèse texte avec adresse, parcelle, zonage, dispositif, conclusion et contrôles.
+Après analyse, Atlas permet **Imprimer / PDF** et **Copier la fiche**.
 
 ## v1.2 — historique des dossiers
 
-Atlas peut enregistrer jusqu’à 30 dossiers dans le stockage local du navigateur.
-
-Fonctions :
-
-- enregistrer un dossier analysé ;
-- restaurer les champs et l’instantané du résultat ;
-- supprimer un dossier ;
-- effacer l’historique complet.
-
-Un dossier restauré doit être regéocodé avant une nouvelle analyse afin de réactualiser parcelle, zonage et patrimoine. L’historique reste local au navigateur et peut disparaître si les données du site sont effacées.
+Atlas peut enregistrer jusqu’à 30 dossiers dans le stockage local du navigateur. La v1.4 ajoute également les champs liés au nombre de voies à l’historique et à la fiche exportée.
 
 ## Sources patrimoniales
 
@@ -69,13 +92,7 @@ Atlas interroge :
 
 `https://www.geoportail-urbanisme.gouv.fr/api/feature-info/sup`
 
-Catégories suivies :
-
-- AC1 : monuments historiques / abords ;
-- AC2 : sites inscrits / classés ;
-- AC4 / AC4 bis : sites patrimoniaux remarquables et protections associées.
-
-Une absence de résultat automatique ne constitue pas une preuve juridique d’absence de protection.
+Catégories suivies : AC1, AC2, AC4 / AC4 bis. Une absence de résultat automatique ne constitue pas une preuve juridique d’absence de protection.
 
 ## Zonage RLPi
 
@@ -87,13 +104,7 @@ Niveaux de confiance :
 
 ## Tests automatiques
 
-Le workflow GitHub Actions **Atlas self-test** vérifie :
-
-- les adresses de référence ;
-- la précision du géocodage ;
-- la recherche POI de l’Aire de Saint-Rémy à Woippy ;
-- les services parcelle / patrimoine ;
-- la présence des fonctions critiques de la version courante.
+Le workflow GitHub Actions **Atlas self-test** vérifie notamment les adresses de référence, le POI de l’Aire de Saint-Rémy à Woippy, les fonctions critiques des versions courantes et les nouveaux outils v1.4.
 
 ## Référentiel
 
@@ -113,10 +124,12 @@ https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000
 
 - `index.html` : interface ;
 - `styles.css` : présentation responsive ;
+- `v14.css` : styles des outils v1.4 ;
 - `geocode.js` : adresses, lieux/POI et précision ;
 - `zoning.js` : carte, parcelle et zonage ;
 - `heritage.js` : protections patrimoniales ;
 - `app.js` : moteur RLPi + contrôles nationaux ciblés ;
+- `v14.js` : voies, plans et recherche documentaire ;
 - `export.js` : fiche d’instruction ;
 - `history.js` : historique local ;
 - `scripts/selftest.mjs` : tests automatiques ;
@@ -130,7 +143,7 @@ Atlas fournit une pré-analyse. Une décision définitive doit être confrontée
 
 ## Prochaines étapes
 
-1. améliorer la détection des axes ZP4-A / ZP4-B ;
-2. intégrer une couche SIG officielle de zonage si une géométrie exploitable devient disponible ;
-3. enrichir progressivement les contrôles nationaux et cas particuliers ;
-4. envisager un stockage synchronisé multi-appareils pour les dossiers.
+1. backend sécurisé pour analyse IA réelle des plans ;
+2. accès API Pappers si une offre et une clé serveur sont disponibles ;
+3. amélioration de la détection des axes ZP4-A / ZP4-B ;
+4. intégration d’une couche SIG officielle de zonage si une géométrie exploitable devient disponible.
