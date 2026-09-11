@@ -2,20 +2,27 @@
 
 Application web d’assistance à la pré-analyse des dispositifs de publicité, enseignes et préenseignes sur le territoire de l’Eurométropole de Metz.
 
-## v0.3
+## v0.4
 
-La v0.3 ajoute la localisation automatique à partir d’une adresse, tout en conservant le moteur réglementaire structuré introduit en v0.2.
+La v0.4 ajoute une vraie couche géographique au moteur réglementaire.
 
 Principales évolutions :
 
-- recherche d’adresse via le service public de géocodage de la Géoplateforme ;
-- propositions d’adresses pendant la saisie ;
-- remplissage automatique de la commune ;
-- affichage du code postal et des coordonnées géographiques ;
-- contrôle automatique de l’appartenance à l’Eurométropole de Metz ;
-- prise en compte du fait que Lorry-Mardigny n’est pas couverte par le RLPi approuvé en 2025 ;
-- conservation de la sélection manuelle des zones ZP / ZE en attendant l’intégration de géométries officielles exploitables ;
-- interface responsive améliorée pour téléphone.
+- géocodage d’adresse via la Géoplateforme IGN ;
+- carte interactive Leaflet / OpenStreetMap ;
+- recherche automatique de la parcelle cadastrale via le géocodage inverse IGN ;
+- affichage commune, code postal, coordonnées et périmètre RLPi ;
+- déduction automatique de la zone enseigne ZE à partir de la ZP ;
+- reconnaissance assistée de plusieurs secteurs d’activités explicitement nommés dans le RLPi (notamment ZP5-A et ZP5-B) ;
+- conservation d’une sélection manuelle de la ZP lorsque la géométrie officielle ne permet pas encore une détermination automatisée fiable.
+
+### Correspondance ZP → ZE utilisée
+
+- ZP1 / ZP2 → ZE1 ;
+- ZP3 / ZP4-A / ZP4-B / ZP5-B → ZE2 ;
+- ZP5-A / ZP5-C → ZE3.
+
+Cette correspondance est issue de la définition des zones d’enseignes du RLPi.
 
 ## Référentiel réglementaire
 
@@ -29,19 +36,21 @@ https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/tel
 
 - `index.html` : interface ;
 - `styles.css` : présentation responsive ;
-- `geocode.js` : recherche d’adresse, commune, coordonnées et périmètre ;
+- `geocode.js` : recherche d’adresse et localisation ;
+- `zoning.js` : carte, parcelle et aide au zonage ;
 - `app.js` : moteur de pré-analyse ;
 - `data/rules.json` : règles locales structurées et versionnées.
 
-## Important
+## Limite actuelle
+
+Le plan réglementaire officiel existe en PDF, mais un jeu de polygones RLPi officiel directement exploitable par Atlas n’a pas encore été identifié. La v0.4 ne prétend donc pas déterminer automatiquement toutes les ZP : elle automatise ce qui peut l’être de manière fiable et demande une confirmation lorsque le zonage exact reste incertain.
 
 Atlas fournit une pré-analyse. Une instruction définitive doit également prendre en compte les dispositions nationales du Code de l’environnement, le Code de la route, les protections patrimoniales, les autorisations administratives et les particularités du terrain.
 
 ## Prochaines étapes
 
-1. détermination automatique des zones ZP / ZE à partir de géométries officielles ;
-2. ajout d’une carte interactive ;
-3. identification de la parcelle cadastrale ;
-4. intégration plus fine des règles nationales ;
-5. génération d’une fiche d’instruction exportable ;
-6. historique des dossiers.
+1. intégrer les polygones officiels du zonage RLPi dès qu’une source SIG exploitable est disponible ;
+2. afficher les zones RLPi directement sur la carte ;
+3. intégrer plus finement les règles nationales ;
+4. générer une fiche d’instruction exportable ;
+5. historique des dossiers.
