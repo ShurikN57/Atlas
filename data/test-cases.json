@@ -1,0 +1,23 @@
+{
+  "version": "0.9",
+  "cases": [
+    {
+      "name": "Woippy - adresse précise",
+      "query": "7 Avenue de Thionville 57140 Woippy",
+      "expected": {
+        "city": "Woippy",
+        "postcode": "57140",
+        "precision": "exact"
+      }
+    },
+    {
+      "name": "Woippy - voie sans numéro",
+      "query": "Route de Thionville 57140 Woippy",
+      "expected": {
+        "city": "Woippy",
+        "postcode": "57140",
+        "precisionNot": "exact"
+      }
+    }
+  ]
+}
