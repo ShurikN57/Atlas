@@ -1,0 +1,27 @@
+name: Atlas self-test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'geocode.js'
+      - 'zoning.js'
+      - 'heritage.js'
+      - 'data/test-cases.json'
+      - 'scripts/selftest.mjs'
+      - '.github/workflows/atlas-selftest.yml'
+  workflow_dispatch:
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Atlas address checks
+        run: node scripts/selftest.mjs
