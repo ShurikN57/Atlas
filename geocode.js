@@ -8,10 +8,30 @@ const METZ_METROPOLE_COMMUNES = [
 ];
 
 const RLPi_EXCLUDED = new Set(["lorry-mardigny"]);
-const normalizeName = (value = "") => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[’']/g, "-").replace(/\s+/g, "-");
+const normalizeName = (value = "") => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[’']/g, "-").replace(/\s+/g, "-");
 const coveredSet = new Set(METZ_METROPOLE_COMMUNES.map(normalizeName));
 
 const geocodeState = { lat: null, lon: null, citycode: null, postcode: null, label: null, precision: "unknown", precisionLabel: "À déterminer", sourceIndex: null };
+
+function firstText(...values) {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      const nested = firstText(...value);
+      if (nested) return nested;
+      continue;
+    }
+    if (value && typeof value === "object") {
+      const nested = firstText(value.name, value.label, value.value, value.text);
+      if (nested) return nested;
+      continue;
+    }
+    if (value !== undefined && value !== null) {
+      const text = String(value).trim();
+      if (text) return text;
+    }
+  }
+  return "";
+}
 
 function setGeoStatus(kind, text) {
   const el = document.getElementById("geoStatus");
@@ -23,11 +43,11 @@ function setGeoStatus(kind, text) {
 function detectAddressPrecision(properties = {}) {
   const sourceIndex = properties._atlasSourceIndex || "address";
   if (sourceIndex === "poi") return { key: "approx", label: "Lieu / établissement · parcelle indicative", kind: "warn" };
-  const type = String(properties.type || properties.result_type || "").toLowerCase();
-  const housenumber = properties.housenumber || properties.numero || properties.number || "";
+  const type = firstText(properties.type, properties.result_type).toLowerCase();
+  const housenumber = firstText(properties.housenumber, properties.numero, properties.number);
   if (housenumber || type === "housenumber") return { key: "exact", label: "Adresse précise · parcelle fiable", kind: "ok" };
   if (["street", "locality", "municipality", "city"].includes(type)) return { key: "street", label: "Voie / secteur · parcelle indicative", kind: "warn" };
-  const label = String(properties.label || properties.name || "");
+  const label = firstText(properties.label, properties.name);
   if (/^\s*\d+[a-zA-Z]?\b/.test(label)) return { key: "exact", label: "Adresse précise · parcelle fiable", kind: "ok" };
   return { key: "approx", label: "Localisation approximative", kind: "warn" };
 }
@@ -40,28 +60,50 @@ function setAddressPrecision(precision) {
 }
 
 function cityFromProperties(properties = {}) {
-  return properties.city || properties.city_name || properties.municipality || properties.commune || properties.locality || "";
+  return firstText(properties.city, properties.city_name, properties.municipality, properties.commune, properties.locality);
 }
 
 function postcodeFromProperties(properties = {}) {
-  return properties.postcode || properties.postcode_ || properties.postalcode || properties.postal_code || "";
+  return firstText(properties.postcode, properties.postcode_, properties.postalcode, properties.postal_code);
+}
+
+function labelFromProperties(properties = {}) {
+  return firstText(properties.label, properties.name, properties.toponym, properties.poi_name);
+}
+
+function normalizeFeature(feature, sourceIndex) {
+  const p = feature?.properties || {};
+  const city = cityFromProperties(p);
+  const postcode = postcodeFromProperties(p);
+  const label = labelFromProperties(p);
+  return {
+    ...feature,
+    properties: {
+      ...p,
+      _atlasSourceIndex: sourceIndex,
+      _atlasCity: city,
+      _atlasPostcode: postcode,
+      _atlasLabel: label
+    }
+  };
 }
 
 function setGeoDetails(properties, coordinates) {
-  const [lon, lat] = coordinates || [];
-  geocodeState.lon = lon ?? null;
-  geocodeState.lat = lat ?? null;
-  geocodeState.citycode = properties.citycode || properties.citycode_ || properties.insee || null;
-  geocodeState.postcode = postcodeFromProperties(properties) || null;
-  geocodeState.label = properties.label || properties.name || null;
+  const lon = Number(coordinates?.[0]);
+  const lat = Number(coordinates?.[1]);
+  geocodeState.lon = Number.isFinite(lon) ? lon : null;
+  geocodeState.lat = Number.isFinite(lat) ? lat : null;
+  geocodeState.citycode = firstText(properties.citycode, properties.citycode_, properties.insee) || null;
+  geocodeState.postcode = firstText(properties._atlasPostcode, postcodeFromProperties(properties)) || null;
+  geocodeState.label = firstText(properties._atlasLabel, labelFromProperties(properties)) || null;
   geocodeState.sourceIndex = properties._atlasSourceIndex || "address";
   const precision = detectAddressPrecision(properties);
   geocodeState.precision = precision.key;
   geocodeState.precisionLabel = precision.label;
 
-  const city = cityFromProperties(properties);
+  const city = firstText(properties._atlasCity, cityFromProperties(properties));
   if (document.getElementById("city") && city) document.getElementById("city").value = city;
-  if (document.getElementById("address")) document.getElementById("address").value = geocodeState.label || document.getElementById("address").value;
+  if (document.getElementById("address") && geocodeState.label) document.getElementById("address").value = geocodeState.label;
 
   const postcode = document.getElementById("postcode");
   const coords = document.getElementById("coords");
@@ -95,30 +137,43 @@ function setGeoDetails(properties, coordinates) {
 function resultStatus(properties = {}) {
   const precision = detectAddressPrecision(properties);
   if (properties._atlasSourceIndex === "poi") {
-    return { kind: "warn", text: "Lieu / établissement géocodé. Coordonnées, carte et parcelle mises à jour ; confirmer l’implantation exacte du dispositif sur le site." };
+    return { kind: "warn", text: "Lieu / établissement géocodé. Coordonnées, carte, parcelle, zonage assisté et patrimoine sont maintenant recalculés ; confirmer l’implantation exacte du dispositif sur le site." };
   }
-  if (precision.key === "exact") {
-    return { kind: "ok", text: "Adresse précise géocodée. Commune, coordonnées, carte et parcelle mises à jour." };
-  }
+  if (precision.key === "exact") return { kind: "ok", text: "Adresse précise géocodée. Commune, coordonnées, carte et parcelle mises à jour." };
   return { kind: "warn", text: "Localisation par voie/secteur : la parcelle retournée reste indicative tant qu’un numéro précis n’est pas sélectionné." };
+}
+
+function queryTokens(query = "") {
+  return normalizeName(query).split("-").filter((token) => token.length >= 3);
+}
+
+function scoreFeature(feature, query) {
+  const p = feature.properties || {};
+  const text = normalizeName(`${p._atlasLabel || labelFromProperties(p)} ${p._atlasCity || cityFromProperties(p)} ${p._atlasPostcode || postcodeFromProperties(p)}`);
+  const tokens = queryTokens(query);
+  let score = 0;
+  for (const token of tokens) if (text.includes(token)) score += 3;
+  const city = normalizeName(p._atlasCity || cityFromProperties(p));
+  if (city && normalizeName(query).includes(city)) score += 12;
+  const placeIntent = /\b(aire|station|esso|service|commerce|restaurant|hotel|centre|magasin|etablissement|lieu)\b/i.test(query);
+  if (p._atlasSourceIndex === "poi" && placeIntent) score += 10;
+  if (p._atlasSourceIndex === "address" && /^\s*\d/.test(query)) score += 8;
+  return score;
 }
 
 function renderSuggestions(features) {
   const box = document.getElementById("addressSuggestions");
   if (!box) return;
   box.innerHTML = "";
-  if (!features.length) {
-    box.hidden = true;
-    return;
-  }
+  if (!features.length) { box.hidden = true; return; }
   features.slice(0, 8).forEach((feature) => {
     const p = feature.properties || {};
     const button = document.createElement("button");
     button.type = "button";
     button.className = "address-suggestion";
     const source = p._atlasSourceIndex === "poi" ? "Lieu / établissement" : "Adresse";
-    const context = p.context || cityFromProperties(p) || "";
-    button.innerHTML = `<strong>${p.label || p.name || source}</strong><span>${source}${context ? ` · ${context}` : ""}</span>`;
+    const context = firstText(p.context, p._atlasCity, cityFromProperties(p));
+    button.innerHTML = `<strong>${p._atlasLabel || labelFromProperties(p) || source}</strong><span>${source}${context ? ` · ${context}` : ""}</span>`;
     button.addEventListener("click", () => {
       setGeoDetails(p, feature.geometry?.coordinates || []);
       box.hidden = true;
@@ -135,19 +190,16 @@ async function searchIndex(query, index) {
   const response = await fetch(url, { headers: { "Accept": "application/json" } });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const data = await response.json();
-  return (data.features || []).map((feature) => ({
-    ...feature,
-    properties: { ...(feature.properties || {}), _atlasSourceIndex: index }
-  }));
+  return (data.features || []).map((feature) => normalizeFeature(feature, index));
 }
 
 function featureKey(feature) {
   const p = feature.properties || {};
   const coords = feature.geometry?.coordinates || [];
-  return `${p.label || p.name || ""}|${coords[0] ?? ""}|${coords[1] ?? ""}`.toLowerCase();
+  return `${p._atlasLabel || labelFromProperties(p)}|${coords[0] ?? ""}|${coords[1] ?? ""}`.toLowerCase();
 }
 
-function mergeFeatures(addressFeatures, poiFeatures) {
+function mergeFeatures(addressFeatures, poiFeatures, query) {
   const seen = new Set();
   const merged = [];
   for (const feature of [...addressFeatures, ...poiFeatures]) {
@@ -156,7 +208,7 @@ function mergeFeatures(addressFeatures, poiFeatures) {
     seen.add(key);
     merged.push(feature);
   }
-  return merged;
+  return merged.sort((a, b) => scoreFeature(b, query) - scoreFeature(a, query));
 }
 
 async function geocodeAddress(showSuggestions = false) {
@@ -169,13 +221,10 @@ async function geocodeAddress(showSuggestions = false) {
 
   setGeoStatus("loading", "Recherche de l’adresse ou du lieu…");
   try {
-    const [addressResult, poiResult] = await Promise.allSettled([
-      searchIndex(query, "address"),
-      searchIndex(query, "poi")
-    ]);
+    const [addressResult, poiResult] = await Promise.allSettled([searchIndex(query, "address"), searchIndex(query, "poi")]);
     const addressFeatures = addressResult.status === "fulfilled" ? addressResult.value : [];
     const poiFeatures = poiResult.status === "fulfilled" ? poiResult.value : [];
-    const features = mergeFeatures(addressFeatures, poiFeatures);
+    const features = mergeFeatures(addressFeatures, poiFeatures, query);
 
     if (!features.length) {
       if (addressResult.status === "rejected" && poiResult.status === "rejected") throw addressResult.reason || poiResult.reason;
@@ -186,8 +235,7 @@ async function geocodeAddress(showSuggestions = false) {
 
     if (showSuggestions && features.length > 1) {
       renderSuggestions(features);
-      const poiCount = poiFeatures.length;
-      setGeoStatus("ok", `${features.length} proposition(s) trouvée(s)${poiCount ? `, dont ${poiCount} lieu(x) / établissement(s)` : ""}. Sélectionnez le bon emplacement.`);
+      setGeoStatus("ok", `${features.length} proposition(s) trouvée(s)${poiFeatures.length ? `, dont ${poiFeatures.length} lieu(x) / établissement(s)` : ""}. Les résultats les plus pertinents sont affichés en premier.`);
     } else {
       const first = features[0];
       setGeoDetails(first.properties || {}, first.geometry?.coordinates || []);
@@ -208,10 +256,7 @@ const addressInput = document.getElementById("address");
 addressInput?.addEventListener("input", () => {
   clearTimeout(geocodeTimer);
   const value = addressInput.value.trim();
-  if (value.length < 5) {
-    renderSuggestions([]);
-    return;
-  }
+  if (value.length < 5) { renderSuggestions([]); return; }
   geocodeTimer = setTimeout(() => geocodeAddress(true), 450);
 });
 
