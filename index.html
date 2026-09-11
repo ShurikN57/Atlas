@@ -12,19 +12,43 @@
       <h1>Atlas</h1>
       <p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p>
     </div>
-    <span class="version">v0.2</span>
+    <span class="version">v0.3</span>
   </header>
 
   <main class="layout">
     <section class="card">
-      <h2>Localisation</h2>
-      <div class="grid two">
+      <div class="section-head">
+        <h2>Localisation</h2>
+        <span class="mini-badge">Géocodage automatique</span>
+      </div>
+
+      <div class="address-search">
         <label>Adresse
-          <input id="address" type="text" placeholder="Ex. Woippy, route de Thionville" />
+          <div class="address-row">
+            <input id="address" type="text" autocomplete="off" placeholder="Ex. 2 rue du Longuenot, Woippy" />
+            <button id="geocodeBtn" class="secondary" type="button">Rechercher</button>
+          </div>
+          <div id="addressSuggestions" class="address-suggestions" hidden></div>
         </label>
+      </div>
+
+      <div id="geoStatus" class="geo-status neutral">Saisissez une adresse : Atlas recherchera automatiquement la commune et les coordonnées.</div>
+
+      <div class="geo-summary">
+        <div><span>Code postal</span><strong id="postcode">—</strong></div>
+        <div><span>Coordonnées</span><strong id="coords">—</strong></div>
+        <div><span>Périmètre</span><strong id="rlpiScope" class="scope-badge neutral">À déterminer</strong></div>
+      </div>
+
+      <div class="grid two">
         <label>Commune
           <input id="city" type="text" placeholder="Woippy" />
         </label>
+        <div class="info-field">
+          <span>Zonage automatique</span>
+          <strong>Prévu en v0.4</strong>
+          <small>En v0.3, l’adresse et la commune sont automatisées. Les zones ZP / ZE restent sélectionnées manuellement.</small>
+        </div>
         <label>Zone publicité / préenseigne
           <select id="zp">
             <option value="">À déterminer</option>
@@ -109,13 +133,16 @@
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
       <div id="checksResult" class="checks-result"></div>
       <details>
-        <summary>Référentiel et limites de la v0.2</summary>
-        <p>Atlas v0.2 intègre le référentiel structuré des principales règles du RLPi approuvé de l’Eurométropole de Metz pour les zones ZP1 à ZP5-C et ZE1 à ZE3. Les règles nationales du Code de l’environnement, le Code de la route, les contraintes patrimoniales, la géométrie exacte du terrain et les cas particuliers restent à vérifier lorsqu’ils sont signalés.</p>
+        <summary>Référentiel et limites de la v0.3</summary>
+        <p>Atlas v0.3 ajoute le géocodage d’adresse via le service public de la Géoplateforme. La commune, le code postal, les coordonnées et l’appartenance au périmètre du RLPi sont déterminés automatiquement.</p>
+        <p>Le zonage précis ZP / ZE reste manuel dans cette version. Il sera automatisé lorsque les géométries officielles exploitables du RLPi seront intégrées.</p>
+        <p>La pré-analyse réglementaire conserve les règles locales de la v0.2. Les règles nationales du Code de l’environnement, le Code de la route, les contraintes patrimoniales, la géométrie exacte du terrain et les cas particuliers restent à vérifier lorsqu’ils sont signalés.</p>
         <p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p>
       </details>
     </section>
   </main>
 
+  <script src="geocode.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
