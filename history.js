@@ -1,10 +1,10 @@
-// Atlas v1.2 — historique local des dossiers
+// Atlas v1.4 — historique local des dossiers
 const ATLAS_HISTORY_KEY = "atlas_history_v1_2";
 const ATLAS_HISTORY_MAX = 30;
 
 const HISTORY_VALUE_FIELDS = [
   "address", "city", "zp", "ze", "deviceType", "mounting", "width", "height", "totalHeight",
-  "count", "frontage", "activities", "facadeSurface", "projection"
+  "count", "frontage", "activities", "facadeSurface", "projection", "borderingRoads", "roadsConfidence", "roadsNote", "planType"
 ];
 const HISTORY_CHECK_FIELDS = [
   "lit", "digital", "fuelStation", "emergency", "noFacadeSign", "motorway", "outsideAgglomeration", "treeSupport"
