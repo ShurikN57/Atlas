@@ -9,7 +9,7 @@
   <meta http-equiv="Expires" content="0" />
   <title>Atlas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="styles.css?v=0.8" />
+  <link rel="stylesheet" href="styles.css?v=0.9" />
 </head>
 <body>
   <header class="topbar">
@@ -17,7 +17,7 @@
       <h1>Atlas</h1>
       <p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p>
     </div>
-    <span class="version">v0.8</span>
+    <span class="version">v0.9</span>
   </header>
 
   <main class="layout">
@@ -56,9 +56,9 @@
           <input id="city" type="text" placeholder="Woippy" />
         </label>
         <div class="info-field">
-          <span>Zonage assisté v0.8</span>
-          <strong>Adresse précise et parcelle distinguées des recherches de voie</strong>
-          <small>Avec un numéro exact, la parcelle est considérée comme une référence fiable. Une recherche par nom de voie ou secteur reste indicative.</small>
+          <span>Zonage assisté v0.9</span>
+          <strong>La fiabilité de localisation entre désormais dans la conclusion</strong>
+          <small>Une adresse approximative, un zonage à confirmer ou un contrôle patrimonial incomplet empêchent Atlas de conclure automatiquement.</small>
         </div>
         <label>Zone publicité / préenseigne
           <select id="zp">
@@ -130,19 +130,20 @@
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
       <div id="checksResult" class="checks-result"></div>
       <details>
-        <summary>Référentiel et limites de la v0.8</summary>
-        <p>Atlas v0.8 distingue les adresses précises avec numéro des recherches par voie ou secteur. La parcelle obtenue après une adresse précise est considérée comme une meilleure référence géographique ; une recherche sans numéro reste indicative.</p>
-        <p>Le bloc patrimonial est désormais compact lorsqu’aucune protection AC1 / AC2 / AC4 n’est détectée, et s’ouvre automatiquement lorsqu’une protection ou une erreur de contrôle nécessite l’attention.</p>
-        <p>L’absence de résultat patrimonial reste informative et ne constitue pas une preuve juridique d’absence de protection.</p>
+        <summary>Référentiel et limites de la v0.9</summary>
+        <p>Atlas v0.9 croise désormais le résultat RLPi avec la précision de l’adresse, la fiabilité du zonage et l’état du contrôle patrimonial.</p>
+        <p>Une adresse non précise, une ZP/ZE non déterminée, un zonage restant à confirmer ou un contrôle patrimonial indisponible peuvent conduire à la conclusion <strong>Impossible de conclure automatiquement</strong>.</p>
+        <p>Lorsqu’une protection AC1 / AC2 / AC4 est détectée, Atlas signale explicitement qu’un contrôle complémentaire ou un avis patrimonial peut être requis avant décision.</p>
+        <p>Les règles nationales du Code de l’environnement et du Code de la route restent encore à intégrer plus finement dans une version ultérieure.</p>
         <p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p>
       </details>
     </section>
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="zoning.js?v=0.8"></script>
-  <script src="heritage.js?v=0.8"></script>
-  <script src="geocode.js?v=0.8"></script>
-  <script src="app.js?v=0.8"></script>
+  <script src="zoning.js?v=0.9"></script>
+  <script src="heritage.js?v=0.9"></script>
+  <script src="geocode.js?v=0.9"></script>
+  <script src="app.js?v=0.9"></script>
 </body>
 </html>
