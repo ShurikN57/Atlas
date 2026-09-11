@@ -9,12 +9,12 @@
   <meta http-equiv="Expires" content="0" />
   <title>Atlas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="styles.css?v=1.1" />
+  <link rel="stylesheet" href="styles.css?v=1.2" />
 </head>
 <body>
   <header class="topbar">
     <div><h1>Atlas</h1><p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p></div>
-    <span class="version">v1.1</span>
+    <span class="version">v1.2</span>
   </header>
 
   <main class="layout">
@@ -28,7 +28,7 @@
       <div id="map" class="map" aria-label="Carte de localisation"></div>
       <div class="grid two">
         <label>Commune<input id="city" type="text" placeholder="Woippy" /></label>
-        <div class="info-field"><span>Zonage assisté v1.1</span><strong>RLPi + règles nationales + fiche exportable</strong><small>Après analyse, la synthèse peut être copiée ou imprimée/enregistrée en PDF depuis le navigateur.</small></div>
+        <div class="info-field"><span>Zonage assisté v1.2</span><strong>Analyse + export + historique local</strong><small>Les dossiers analysés peuvent maintenant être enregistrés et restaurés sur le même navigateur.</small></div>
         <label>Zone publicité / préenseigne<select id="zp"><option value="">À déterminer</option><option>ZP1</option><option>ZP2</option><option>ZP3</option><option>ZP4-A</option><option>ZP4-B</option><option>ZP5-A</option><option>ZP5-B</option><option>ZP5-C</option></select></label>
         <label>Zone enseigne<select id="ze"><option value="">À déterminer</option><option>ZE1</option><option>ZE2</option><option>ZE3</option></select></label>
       </div>
@@ -56,10 +56,15 @@
     <section class="card result-card">
       <div class="result-head"><h2>Résultat réglementaire</h2><span id="statusBadge" class="badge neutral">En attente</span></div>
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div><div id="checksResult" class="checks-result"></div>
-      <div class="checks" id="reportActions"><button id="printBtn" class="secondary" type="button">Imprimer / PDF</button><button id="copyReportBtn" class="secondary" type="button">Copier la fiche</button></div>
-      <details><summary>Référentiel et limites de la v1.1</summary><p>Atlas v1.1 ajoute une fiche de pré-analyse exportable à partir du dossier courant.</p><p>Le bouton « Imprimer / PDF » utilise la fonction d’impression du navigateur ; sur iPhone, le menu d’impression/partage permet ensuite de conserver la fiche en PDF. « Copier la fiche » génère une synthèse texte réutilisable dans un dossier ou un courriel.</p><p>Les contrôles nationaux de la v1.0 sont conservés : notamment L.581-4, L.581-7 et R.581-31 du Code de l’environnement.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
+      <div class="checks" id="reportActions"><button id="saveCaseBtn" class="primary" type="button">Enregistrer le dossier</button><button id="printBtn" class="secondary" type="button">Imprimer / PDF</button><button id="copyReportBtn" class="secondary" type="button">Copier la fiche</button></div>
+      <details><summary>Référentiel et limites de la v1.2</summary><p>Atlas v1.2 ajoute un historique local des dossiers analysés, en plus de la fiche exportable et des contrôles RLPi/nationaux.</p><p>L’historique est stocké uniquement dans le navigateur utilisé et peut disparaître si les données du site sont effacées. Un dossier restauré conserve son instantané de résultat ; avant une nouvelle analyse, il faut relancer la recherche d’adresse afin de réactualiser parcelle, zonage et patrimoine.</p><p>Les contrôles nationaux restent une première couche ciblée et ne remplacent pas l’instruction complète.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
+    </section>
+
+    <section class="card">
+      <div class="section-head"><h2>Historique des dossiers</h2><button id="clearHistoryBtn" class="secondary" type="button">Effacer l’historique</button></div>
+      <div id="historyList" class="checks-result"><div class="heritage-empty"><strong>Aucun dossier enregistré.</strong><span>L’historique est conservé uniquement dans ce navigateur.</span></div></div>
     </section>
   </main>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.1"></script><script src="heritage.js?v=1.1"></script><script src="geocode.js?v=1.1"></script><script src="app.js?v=1.1"></script><script src="export.js?v=1.1"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.2"></script><script src="heritage.js?v=1.2"></script><script src="geocode.js?v=1.2"></script><script src="app.js?v=1.2"></script><script src="export.js?v=1.2"></script><script src="history.js?v=1.2"></script>
 </body>
 </html>
