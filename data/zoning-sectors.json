@@ -1,0 +1,33 @@
+{
+  "source": "RLPi Eurométropole de Metz — règlement écrit approuvé 03/02/2025",
+  "notes": "Référentiel textuel des secteurs explicitement nommés dans le règlement. Il ne remplace pas les géométries officielles des plans de zonage.",
+  "zones": {
+    "ZP5-A": [
+      {"name":"Actisud","communes":["Augny","Moulins-lès-Metz"],"aliases":["actisud"]},
+      {"name":"Belle Fontaine","communes":["Marly"],"aliases":["belle fontaine"]},
+      {"name":"Technopôle-Sébastopol","communes":["Metz"],"aliases":["technopole","technopôle","sebastopol","sébastopol"]},
+      {"name":"Berlange","communes":["Woippy"],"aliases":["berlange"]},
+      {"name":"Saint-Vincent","communes":["Woippy"],"aliases":["saint-vincent","saint vincent"]},
+      {"name":"Route de Thionville","communes":["Woippy"],"aliases":["route de thionville"]},
+      {"name":"Deux Fontaines","communes":["Woippy","Metz"],"aliases":["deux fontaines"]},
+      {"name":"Grimont","communes":["Saint-Julien-lès-Metz"],"aliases":["grimont"]},
+      {"name":"Nouveau port de Metz – IKEA","communes":["Metz","La Maxe"],"aliases":["nouveau port","ikea"]},
+      {"name":"Rue du Général Metman","communes":["Metz"],"aliases":["general metman","général metman"]},
+      {"name":"Rue de l’Abattoir","communes":["Metz"],"aliases":["rue de l'abattoir","rue de l’abattoir"]}
+    ],
+    "ZP5-B": [
+      {"name":"La Tannerie","communes":["Saint-Julien-lès-Metz"],"aliases":["tannerie"]},
+      {"name":"Saussaie-aux-Dames","communes":["Montigny-lès-Metz"],"aliases":["saussaie-aux-dames","saussaie aux dames"]},
+      {"name":"La Patrotte","communes":["Metz"],"aliases":["patrotte"]},
+      {"name":"Centre commercial Muse","communes":["Metz"],"aliases":["muse"]},
+      {"name":"Kinépolis","communes":["Saint-Julien-lès-Metz"],"aliases":["kinepolis","kinépolis"]},
+      {"name":"Haut-Rhêle","communes":["Montigny-lès-Metz"],"aliases":["haut-rhele","haut-rhêle"]},
+      {"name":"Dr Schweitzer","communes":["Ars-sur-Moselle"],"aliases":["dr schweitzer","schweitzer"]}
+    ]
+  },
+  "commune_rules": [
+    {"commune":"Vaux","candidate":"ZP1","confidence":"medium","reason":"Le règlement classe l’agglomération de Vaux en ZP1."},
+    {"commune":"Gravelotte","candidate":"ZP1","confidence":"medium","reason":"Le règlement classe l’agglomération de Gravelotte en ZP1."},
+    {"commune":"Ars-sur-Moselle","candidate":"ZP2","confidence":"medium","reason":"Les parties agglomérées d’Ars-sur-Moselle sont en ZP2, sauf la zone d’activités Dr Schweitzer."}
+  ]
+}
