@@ -6,6 +6,8 @@ on:
     paths:
       - 'index.html'
       - 'app.js'
+      - 'export.js'
+      - 'history.js'
       - 'geocode.js'
       - 'zoning.js'
       - 'heritage.js'
