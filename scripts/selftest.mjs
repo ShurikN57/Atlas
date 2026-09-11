@@ -12,7 +12,7 @@ function requireText(source, needle, label) {
 }
 
 function runStaticChecks() {
-  requireText(indexHtml, 'v1.3', 'version v1.3');
+  requireText(indexHtml, 'v1.3.1', 'version v1.3.1');
   requireText(indexHtml, 'id="outsideAgglomeration"', 'case hors agglomération');
   requireText(indexHtml, 'id="treeSupport"', 'case support sur arbre');
   requireText(appJs, 'function addNationalChecks', 'moteur de règles nationales');
@@ -23,39 +23,62 @@ function runStaticChecks() {
   requireText(exportJs, 'function atlasReportText', 'générateur de fiche');
   requireText(indexHtml, 'id="saveCaseBtn"', 'bouton enregistrement dossier');
   requireText(indexHtml, 'id="historyList"', 'liste historique');
-  requireText(indexHtml, 'history.js?v=1.3', 'chargement historique v1.3');
+  requireText(indexHtml, 'history.js?v=1.3.1', 'chargement historique v1.3.1');
   requireText(historyJs, 'ATLAS_HISTORY_KEY', 'clé stockage historique');
   requireText(historyJs, 'localStorage', 'stockage local historique');
   requireText(historyJs, 'function restoreAtlasCase', 'restauration dossier');
   requireText(geocodeJs, 'searchIndex(query, "poi")', 'recherche POI Géoplateforme');
   requireText(geocodeJs, 'Promise.allSettled', 'recherche parallèle adresse + POI');
-  requireText(geocodeJs, 'Lieu / établissement', 'libellé POI');
-  console.log('✅ Contrôles statiques v1.3');
+  requireText(geocodeJs, 'function firstText', 'normalisation des propriétés POI');
+  requireText(geocodeJs, 'function normalizeFeature', 'normalisation des résultats POI');
+  requireText(geocodeJs, 'function scoreFeature', 'classement de pertinence');
+  requireText(geocodeJs, 'document.dispatchEvent(new CustomEvent("atlas:geocoded"', 'déclenchement de la chaîne parcelle/zonage/patrimoine');
+  console.log('✅ Contrôles statiques v1.3.1');
+}
+
+function firstText(...values) {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      const nested = firstText(...value);
+      if (nested) return nested;
+      continue;
+    }
+    if (value && typeof value === 'object') {
+      const nested = firstText(value.name, value.label, value.value, value.text);
+      if (nested) return nested;
+      continue;
+    }
+    if (value !== undefined && value !== null) {
+      const text = String(value).trim();
+      if (text) return text;
+    }
+  }
+  return '';
 }
 
 function precisionOf(properties = {}, sourceIndex = 'address') {
   if (sourceIndex === 'poi') return 'approx';
-  const type = String(properties.type || properties.result_type || '').toLowerCase();
-  const housenumber = properties.housenumber || properties.numero || properties.number || '';
+  const type = firstText(properties.type, properties.result_type).toLowerCase();
+  const housenumber = firstText(properties.housenumber, properties.numero, properties.number);
   if (housenumber || type === 'housenumber') return 'exact';
   if (['street', 'locality', 'municipality', 'city'].includes(type)) return 'street';
-  const label = String(properties.label || properties.name || '');
+  const label = firstText(properties.label, properties.name);
   if (/^\s*\d+[a-zA-Z]?\b/.test(label)) return 'exact';
   return 'approx';
 }
 
 async function json(url, timeoutMs = 10000) {
-  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.3' }, signal: AbortSignal.timeout(timeoutMs) });
+  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.3.1' }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
   return res.json();
 }
 
 function cityOf(p = {}) {
-  return p.city || p.city_name || p.municipality || p.commune || p.locality || '';
+  return firstText(p.city, p.city_name, p.municipality, p.commune, p.locality);
 }
 
 function postcodeOf(p = {}) {
-  return p.postcode || p.postcode_ || p.postalcode || p.postal_code || '';
+  return firstText(p.postcode, p.postcode_, p.postalcode, p.postal_code);
 }
 
 async function runCase(test) {
@@ -64,11 +87,12 @@ async function runCase(test) {
   const feature = search.features?.[0];
   if (!feature) throw new Error(`Aucun résultat de géocodage dans l’index ${index}`);
   const p = feature.properties || {};
-  const [lon, lat] = feature.geometry?.coordinates || [];
+  const lon = Number(feature.geometry?.coordinates?.[0]);
+  const lat = Number(feature.geometry?.coordinates?.[1]);
   const precision = precisionOf(p, index);
   const city = cityOf(p);
   const postcode = postcodeOf(p);
-  const label = p.label || p.name || '';
+  const label = firstText(p.label, p.name, p.toponym, p.poi_name);
 
   if (test.expected?.city && city !== test.expected.city) throw new Error(`Commune attendue ${test.expected.city}, reçue ${city}`);
   if (test.expected?.postcode && postcode !== test.expected.postcode) throw new Error(`Code postal attendu ${test.expected.postcode}, reçu ${postcode}`);
@@ -88,7 +112,7 @@ async function runCase(test) {
   try {
     const parcelData = await json(`https://data.geopf.fr/geocodage/reverse?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}&index=parcel&limit=1`);
     const pp = parcelData.features?.[0]?.properties || {};
-    parcel = pp.id || pp.parcel_id || pp.parcelle || pp.name || pp.label || null;
+    parcel = firstText(pp.id, pp.parcel_id, pp.parcelle, pp.name, pp.label) || null;
   } catch (error) { parcel = `indisponible (${error.message})`; }
 
   let heritage = 'non testé';
