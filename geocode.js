@@ -11,13 +11,30 @@ const RLPi_EXCLUDED = new Set(["lorry-mardigny"]);
 const normalizeName = (value = "") => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[’']/g, "-").replace(/\s+/g, "-");
 const coveredSet = new Set(METZ_METROPOLE_COMMUNES.map(normalizeName));
 
-const geocodeState = { lat: null, lon: null, citycode: null, postcode: null, label: null };
+const geocodeState = { lat: null, lon: null, citycode: null, postcode: null, label: null, precision: "unknown", precisionLabel: "À déterminer" };
 
 function setGeoStatus(kind, text) {
   const el = document.getElementById("geoStatus");
   if (!el) return;
   el.className = `geo-status ${kind}`;
   el.textContent = text;
+}
+
+function detectAddressPrecision(properties = {}) {
+  const type = String(properties.type || properties.result_type || "").toLowerCase();
+  const housenumber = properties.housenumber || properties.numero || properties.number || "";
+  if (housenumber || type === "housenumber") return { key: "exact", label: "Adresse précise · parcelle fiable", kind: "ok" };
+  if (["street", "locality", "municipality", "city"].includes(type)) return { key: "street", label: "Voie / secteur · parcelle indicative", kind: "warn" };
+  const label = String(properties.label || properties.name || "");
+  if (/^\s*\d+[a-zA-Z]?\b/.test(label)) return { key: "exact", label: "Adresse précise · parcelle fiable", kind: "ok" };
+  return { key: "approx", label: "Localisation approximative", kind: "warn" };
+}
+
+function setAddressPrecision(precision) {
+  const el = document.getElementById("addressPrecision");
+  if (!el) return;
+  el.textContent = precision.label;
+  el.className = `scope-badge ${precision.kind}`;
 }
 
 function setGeoDetails(properties, coordinates) {
@@ -27,6 +44,9 @@ function setGeoDetails(properties, coordinates) {
   geocodeState.citycode = properties.citycode || properties.citycode_ || null;
   geocodeState.postcode = properties.postcode || properties.postcode_ || null;
   geocodeState.label = properties.label || properties.name || null;
+  const precision = detectAddressPrecision(properties);
+  geocodeState.precision = precision.key;
+  geocodeState.precisionLabel = precision.label;
 
   const city = properties.city || properties.city_name || properties.name || "";
   if (document.getElementById("city")) document.getElementById("city").value = city;
@@ -37,6 +57,7 @@ function setGeoDetails(properties, coordinates) {
   const scope = document.getElementById("rlpiScope");
   if (postcode) postcode.textContent = geocodeState.postcode || "—";
   if (coords) coords.textContent = Number.isFinite(lat) && Number.isFinite(lon) ? `${lat.toFixed(6)}, ${lon.toFixed(6)}` : "—";
+  setAddressPrecision(precision);
 
   const key = normalizeName(city);
   if (scope) {
@@ -53,7 +74,7 @@ function setGeoDetails(properties, coordinates) {
   }
 
   document.dispatchEvent(new CustomEvent("atlas:geocoded", {
-    detail: { lat, lon, city, citycode: geocodeState.citycode, postcode: geocodeState.postcode, label: geocodeState.label }
+    detail: { lat, lon, city, citycode: geocodeState.citycode, postcode: geocodeState.postcode, label: geocodeState.label, precision: precision.key, precisionLabel: precision.label }
   }));
 }
 
@@ -74,7 +95,8 @@ function renderSuggestions(features) {
     button.addEventListener("click", () => {
       setGeoDetails(p, feature.geometry?.coordinates || []);
       box.hidden = true;
-      setGeoStatus("ok", "Adresse géocodée. Commune, coordonnées, carte et parcelle mises à jour.");
+      const precision = detectAddressPrecision(p);
+      setGeoStatus(precision.key === "exact" ? "ok" : "warn", precision.key === "exact" ? "Adresse précise géocodée. Commune, coordonnées, carte et parcelle mises à jour." : "Localisation par voie/secteur : la parcelle retournée reste indicative tant qu’un numéro précis n’est pas sélectionné.");
     });
     box.appendChild(button);
   });
@@ -108,7 +130,8 @@ async function geocodeAddress(showSuggestions = false) {
       const first = features[0];
       setGeoDetails(first.properties || {}, first.geometry?.coordinates || []);
       renderSuggestions([]);
-      setGeoStatus("ok", "Adresse géocodée. Commune, coordonnées, carte et parcelle mises à jour.");
+      const precision = detectAddressPrecision(first.properties || {});
+      setGeoStatus(precision.key === "exact" ? "ok" : "warn", precision.key === "exact" ? "Adresse précise géocodée. Commune, coordonnées, carte et parcelle mises à jour." : "Localisation par voie/secteur : la parcelle retournée reste indicative tant qu’un numéro précis n’est pas sélectionné.");
     }
     return features;
   } catch (error) {
