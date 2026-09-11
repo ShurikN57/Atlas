@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atlas</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Atlas</h1>
+      <p>Prototype d’assistance à l’instruction des dispositifs</p>
+    </div>
+    <span class="version">v0.1</span>
+  </header>
+
+  <main class="layout">
+    <section class="card">
+      <h2>Localisation</h2>
+      <div class="grid two">
+        <label>Adresse
+          <input id="address" type="text" placeholder="Ex. Woippy, route de Thionville" />
+        </label>
+        <label>Commune
+          <input id="city" type="text" placeholder="Woippy" />
+        </label>
+        <label>Zone publicité
+          <select id="zp">
+            <option value="">À déterminer</option>
+            <option>ZP1</option><option>ZP2</option><option>ZP3</option>
+            <option>ZP4-A</option><option>ZP4-B</option>
+            <option>ZP5-A</option><option>ZP5-B</option><option>ZP5-C</option>
+          </select>
+        </label>
+        <label>Zone enseigne
+          <select id="ze">
+            <option value="">À déterminer</option>
+            <option>ZE1</option><option>ZE2</option><option>ZE3</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Dispositif</h2>
+      <div class="grid two">
+        <label>Type
+          <select id="deviceType">
+            <option value="enseigne">Enseigne</option>
+            <option value="publicite">Publicité</option>
+            <option value="preenseigne">Préenseigne</option>
+          </select>
+        </label>
+        <label>Implantation
+          <select id="mounting">
+            <option value="ground">Scellée au sol</option>
+            <option value="wall">Murale</option>
+            <option value="roof">Toiture</option>
+            <option value="fence">Clôture</option>
+            <option value="window">Vitrine</option>
+          </select>
+        </label>
+        <label>Largeur (m)
+          <input id="width" type="number" min="0" step="0.01" placeholder="2" />
+        </label>
+        <label>Hauteur (m)
+          <input id="height" type="number" min="0" step="0.01" placeholder="3" />
+        </label>
+        <label>Hauteur totale au sol (m)
+          <input id="totalHeight" type="number" min="0" step="0.01" placeholder="5" />
+        </label>
+        <label>Nombre de dispositifs
+          <input id="count" type="number" min="1" step="1" value="1" />
+        </label>
+      </div>
+      <div class="checks">
+        <label><input id="lit" type="checkbox" /> Lumineux</label>
+        <label><input id="digital" type="checkbox" /> Numérique</label>
+        <label><input id="motorway" type="checkbox" /> Visible depuis une autoroute / voie express</label>
+      </div>
+      <button id="analyzeBtn" class="primary">Analyser</button>
+    </section>
+
+    <section class="card result-card">
+      <div class="result-head">
+        <h2>Résultat réglementaire</h2>
+        <span id="statusBadge" class="badge neutral">En attente</span>
+      </div>
+      <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
+      <div id="checksResult" class="checks-result"></div>
+      <details>
+        <summary>Références et limites du prototype</summary>
+        <p>Cette v0.1 contient seulement quelques règles d’exemple afin de valider l’architecture. Elle ne doit pas être utilisée comme décision réglementaire définitive.</p>
+      </details>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
