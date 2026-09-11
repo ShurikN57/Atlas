@@ -13,14 +13,14 @@
       <h1>Atlas</h1>
       <p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p>
     </div>
-    <span class="version">v0.5</span>
+    <span class="version">v0.6</span>
   </header>
 
   <main class="layout">
     <section class="card">
       <div class="section-head">
         <h2>Localisation</h2>
-        <span class="mini-badge">Zonage assisté + niveau de confiance</span>
+        <span class="mini-badge">Parcelle + fiabilité du zonage</span>
       </div>
 
       <div class="address-search">
@@ -35,12 +35,13 @@
 
       <div id="geoStatus" class="geo-status neutral">Saisissez une adresse : Atlas recherchera automatiquement la commune et les coordonnées.</div>
 
-      <div class="geo-summary five">
+      <div class="geo-summary six">
         <div><span>Code postal</span><strong id="postcode">—</strong></div>
         <div><span>Coordonnées</span><strong id="coords">—</strong></div>
         <div><span>Parcelle</span><strong id="parcel" class="scope-badge neutral">—</strong></div>
         <div><span>Périmètre</span><strong id="rlpiScope" class="scope-badge neutral">À déterminer</strong></div>
         <div><span>Confiance zonage</span><strong id="zoneConfidence" class="scope-badge neutral">À confirmer</strong></div>
+        <div><span>Méthode zonage</span><strong id="zoneMethod" class="scope-badge neutral">Non déterminée</strong></div>
       </div>
 
       <div id="map" class="map" aria-label="Carte de localisation"></div>
@@ -50,9 +51,9 @@
           <input id="city" type="text" placeholder="Woippy" />
         </label>
         <div class="info-field">
-          <span>Zonage assisté v0.5</span>
-          <strong>Détection prudente, jamais forcée</strong>
-          <small>Atlas reconnaît les secteurs explicitement nommés dans le règlement et signale le niveau de confiance. En cas de doute, la ZP reste à confirmer sur le plan officiel.</small>
+          <span>Zonage assisté v0.6</span>
+          <strong>La parcelle devient la référence du dossier</strong>
+          <small>Une détection par nom de rue ou secteur n’est plus classée « élevée ». Le niveau élevé est réservé à une future intersection géographique fiable avec un zonage officiel.</small>
         </div>
         <label>Zone publicité / préenseigne
           <select id="zp">
@@ -124,10 +125,10 @@
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
       <div id="checksResult" class="checks-result"></div>
       <details>
-        <summary>Référentiel et limites de la v0.5</summary>
-        <p>Atlas v0.5 sépare le référentiel textuel des secteurs de zonage dans <code>data/zoning-sectors.json</code> et ajoute un niveau de confiance à chaque proposition automatique.</p>
-        <p>Une détection élevée correspond à un secteur explicitement nommé dans le règlement et retrouvé dans l’adresse. Une détection moyenne repose sur une règle communale générale. Sinon, Atlas demande une confirmation manuelle sur le plan officiel.</p>
-        <p>La couche SIG officielle exploitable directement en GeoJSON/WFS n’étant pas publiée dans les sources publiques identifiées, Atlas ne simule pas de faux polygones réglementaires.</p>
+        <summary>Référentiel et limites de la v0.6</summary>
+        <p>Atlas v0.6 rend la parcelle cadastrale centrale dans le dossier et distingue explicitement la méthode utilisée pour proposer un zonage.</p>
+        <p>Une correspondance par nom de rue ou de secteur donne désormais une confiance <strong>moyenne</strong>, car une même voie peut traverser plusieurs zones. Le niveau <strong>élevé</strong> est réservé à une intersection géographique fiable entre le point ou la parcelle et une couche officielle de zonage.</p>
+        <p>Tant qu’une couche SIG officielle exploitable n’est pas disponible, le plan officiel reste la référence à confirmer pour toute décision.</p>
         <p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p>
       </details>
     </section>
