@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Atlas</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,20 +13,20 @@
       <h1>Atlas</h1>
       <p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p>
     </div>
-    <span class="version">v0.3</span>
+    <span class="version">v0.4</span>
   </header>
 
   <main class="layout">
     <section class="card">
       <div class="section-head">
         <h2>Localisation</h2>
-        <span class="mini-badge">Géocodage automatique</span>
+        <span class="mini-badge">Adresse + carte + parcelle</span>
       </div>
 
       <div class="address-search">
         <label>Adresse
           <div class="address-row">
-            <input id="address" type="text" autocomplete="off" placeholder="Ex. 2 rue du Longuenot, Woippy" />
+            <input id="address" type="text" autocomplete="off" placeholder="Ex. route de Thionville, Woippy" />
             <button id="geocodeBtn" class="secondary" type="button">Rechercher</button>
           </div>
           <div id="addressSuggestions" class="address-suggestions" hidden></div>
@@ -34,20 +35,23 @@
 
       <div id="geoStatus" class="geo-status neutral">Saisissez une adresse : Atlas recherchera automatiquement la commune et les coordonnées.</div>
 
-      <div class="geo-summary">
+      <div class="geo-summary four">
         <div><span>Code postal</span><strong id="postcode">—</strong></div>
         <div><span>Coordonnées</span><strong id="coords">—</strong></div>
+        <div><span>Parcelle</span><strong id="parcel" class="scope-badge neutral">—</strong></div>
         <div><span>Périmètre</span><strong id="rlpiScope" class="scope-badge neutral">À déterminer</strong></div>
       </div>
+
+      <div id="map" class="map" aria-label="Carte de localisation"></div>
 
       <div class="grid two">
         <label>Commune
           <input id="city" type="text" placeholder="Woippy" />
         </label>
         <div class="info-field">
-          <span>Zonage automatique</span>
-          <strong>Prévu en v0.4</strong>
-          <small>En v0.3, l’adresse et la commune sont automatisées. Les zones ZP / ZE restent sélectionnées manuellement.</small>
+          <span>Zonage assisté</span>
+          <strong>ZE calculée automatiquement</strong>
+          <small>Atlas déduit la ZE dès que la ZP est connue et reconnaît certains secteurs d’activités nommés explicitement dans le RLPi.</small>
         </div>
         <label>Zone publicité / préenseigne
           <select id="zp">
@@ -64,6 +68,7 @@
           </select>
         </label>
       </div>
+      <div id="zoneStatus" class="geo-status neutral">La ZE est automatiquement déduite dès qu’une ZP est connue.</div>
     </section>
 
     <section class="card">
@@ -133,15 +138,16 @@
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div>
       <div id="checksResult" class="checks-result"></div>
       <details>
-        <summary>Référentiel et limites de la v0.3</summary>
-        <p>Atlas v0.3 ajoute le géocodage d’adresse via le service public de la Géoplateforme. La commune, le code postal, les coordonnées et l’appartenance au périmètre du RLPi sont déterminés automatiquement.</p>
-        <p>Le zonage précis ZP / ZE reste manuel dans cette version. Il sera automatisé lorsque les géométries officielles exploitables du RLPi seront intégrées.</p>
-        <p>La pré-analyse réglementaire conserve les règles locales de la v0.2. Les règles nationales du Code de l’environnement, le Code de la route, les contraintes patrimoniales, la géométrie exacte du terrain et les cas particuliers restent à vérifier lorsqu’ils sont signalés.</p>
+        <summary>Référentiel et limites de la v0.4</summary>
+        <p>Atlas v0.4 ajoute la carte interactive, la recherche de parcelle cadastrale et la déduction automatique ZE à partir de la ZP. Certaines grandes zones d’activités explicitement nommées dans le RLPi peuvent être reconnues à partir de l’adresse.</p>
+        <p>La détection exhaustive des ZP par intersection avec les polygones officiels n’est pas encore disponible : quand Atlas ne peut pas conclure de façon fiable, la ZP reste à confirmer sur le plan officiel.</p>
         <p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p>
       </details>
     </section>
   </main>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="zoning.js"></script>
   <script src="geocode.js"></script>
   <script src="app.js"></script>
 </body>
