@@ -1,88 +1,295 @@
 const $ = (id) => document.getElementById(id);
-
-const RULES = {
-  ZE2: {
-    ground: { maxSurface: 4, maxHeight: 4, ref: "RLPi Metz — ZE2 (prototype)" }
-  },
-  ZE3: {
-    ground: { maxSurface: 6, maxHeight: 6, ref: "RLPi Metz — ZE3 (prototype)" }
-  },
-  "ZP5-A": {
-    ground: { maxSurface: 10.5, maxHeight: 6, ref: "RLPi Metz — ZP5-A (prototype)" }
-  }
-};
+let RULES = null;
 
 function row(level, title, text) {
   return `<div class="check-row ${level}"><strong>${title}</strong><span>${text}</span></div>`;
 }
 
-function analyze() {
-  const type = $("deviceType").value;
-  const mounting = $("mounting").value;
-  const ze = $("ze").value;
-  const zp = $("zp").value;
-  const width = Number($("width").value || 0);
-  const height = Number($("height").value || 0);
-  const totalHeight = Number($("totalHeight").value || 0);
-  const motorway = $("motorway").checked;
-  const digital = $("digital").checked;
-  const surface = width * height;
+function worsen(current, next) {
+  const rank = { ok: 0, warn: 1, bad: 2 };
+  return rank[next] > rank[current] ? next : current;
+}
 
-  const zone = type === "enseigne" ? ze : zp;
-  const rule = RULES[zone]?.[mounting];
+function num(id) {
+  return Number($(id)?.value || 0);
+}
+
+function checkLimit(results, label, value, max, unit, ref) {
+  if (!value || max == null) return "ok";
+  if (value <= max) {
+    results.push(row("ok", label, `${value.toFixed(2)} ${unit} ≤ ${max} ${unit} — ${ref}`));
+    return "ok";
+  }
+  results.push(row("bad", label, `${value.toFixed(2)} ${unit} > ${max} ${unit} — ${ref}`));
+  return "bad";
+}
+
+async function loadRules() {
+  try {
+    const response = await fetch("data/rules.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    RULES = await response.json();
+  } catch (error) {
+    console.error("Impossible de charger le référentiel Atlas", error);
+  }
+}
+
+function analyzeAdvertising(ctx, results) {
+  let severity = "ok";
+  const zone = RULES.advertising[ctx.zp];
+  if (!zone) {
+    results.push(row("warn", "Zonage", "Zone publicité / préenseigne non renseignée ou inconnue."));
+    return "warn";
+  }
+
+  if (ctx.zp === "ZP1") {
+    const exception = zone.exceptions?.[ctx.mounting];
+    if (!exception?.allowed) {
+      results.push(row("bad", "Implantation", `Publicité interdite en ${ctx.zp}, hors exceptions prévues — Partie 1, art. 2.1.`));
+      return "bad";
+    }
+    severity = worsen(severity, checkLimit(results, "Surface", ctx.surface, exception.maxSurface, "m²", exception.ref));
+    if (ctx.count > exception.maxCount) {
+      results.push(row("bad", "Nombre", `${ctx.count} dispositifs > ${exception.maxCount} autorisé — ${exception.ref}`));
+      severity = "bad";
+    }
+    return severity;
+  }
+
+  if (ctx.digital) {
+    const digital = zone.digital;
+    if (!digital?.allowed) {
+      results.push(row("bad", "Numérique", `Publicité numérique interdite en ${ctx.zp} — ${digital?.ref || "RLPi"}`));
+      severity = "bad";
+      return severity;
+    }
+    results.push(row("ok", "Numérique", `Autorisé en ${ctx.zp} sous conditions — ${digital.ref}`));
+    severity = worsen(severity, checkLimit(results, "Surface numérique", ctx.surface, digital.maxSurface, "m²", digital.ref));
+    severity = worsen(severity, checkLimit(results, "Hauteur numérique", ctx.totalHeight, digital.maxHeight, "m", digital.ref));
+  }
+
+  const rule = zone.rules?.[ctx.mounting];
+  if (!rule) {
+    results.push(row("warn", "Référentiel", `Implantation non traitée automatiquement pour ${ctx.zp}.`));
+    return worsen(severity, "warn");
+  }
+
+  if (rule.allowed === false) {
+    results.push(row("bad", "Implantation", `Dispositif interdit en ${ctx.zp} pour cette implantation — ${rule.ref}`));
+    return "bad";
+  }
+
+  results.push(row("ok", "Implantation", `Implantation admise en ${ctx.zp} — ${rule.ref}`));
+  severity = worsen(severity, checkLimit(results, "Surface", ctx.surface, rule.maxSurface, "m²", rule.ref));
+  severity = worsen(severity, checkLimit(results, "Hauteur", ctx.totalHeight, rule.maxHeight, "m", rule.ref));
+
+  if (rule.maxCount != null && ctx.count > rule.maxCount) {
+    results.push(row("bad", "Densité", `${ctx.count} dispositifs > ${rule.maxCount} autorisé — ${rule.ref}`));
+    severity = "bad";
+  } else if (rule.maxCount != null) {
+    results.push(row("ok", "Densité", `${ctx.count} dispositif(s) ≤ ${rule.maxCount} — ${rule.ref}`));
+  }
+
+  if (rule.minFrontage != null) {
+    if (!ctx.frontage) {
+      results.push(row("warn", "Linéaire de façade", `À renseigner : un dispositif au sol est interdit si le linéaire visible est inférieur à ${rule.minFrontage} m — ${rule.ref}`));
+      severity = worsen(severity, "warn");
+    } else if (ctx.frontage < rule.minFrontage) {
+      results.push(row("bad", "Linéaire de façade", `${ctx.frontage.toFixed(1)} m < ${rule.minFrontage} m : dispositif au sol interdit — ${rule.ref}`));
+      severity = "bad";
+    } else {
+      results.push(row("ok", "Linéaire de façade", `${ctx.frontage.toFixed(1)} m ≥ ${rule.minFrontage} m — ${rule.ref}`));
+    }
+  }
+
+  return severity;
+}
+
+function analyzeSign(ctx, results) {
+  let severity = "ok";
+  const zone = RULES.signs[ctx.ze];
+  if (!zone) {
+    results.push(row("warn", "Zonage", "Zone enseigne non renseignée ou inconnue."));
+    return "warn";
+  }
+
+  const general = RULES.general.enseigne;
+  if (general.forbiddenMountings.includes(ctx.mounting)) {
+    results.push(row("bad", "Implantation", `Enseigne interdite sur toiture ou terrasse en tenant lieu — ${general.forbiddenMountingsRef}`));
+    return "bad";
+  }
+
+  if (ctx.mounting === "window") {
+    const win = RULES.general.windowLight;
+    if (!ctx.lit) {
+      results.push(row("warn", "Vitrine", "Le contrôle automatisé v0.2 vise les supports lumineux visibles depuis la voie publique."));
+      return "warn";
+    }
+    severity = worsen(severity, checkLimit(results, "Surface cumulée vitrine", ctx.surface * ctx.count, win.maxCumulativeSurface, "m²", win.ref));
+    if (ctx.count > win.maxCount) {
+      results.push(row("bad", "Nombre en vitrine", `${ctx.count} dispositifs > ${win.maxCount} — ${win.ref}`));
+      severity = "bad";
+    } else {
+      results.push(row("ok", "Nombre en vitrine", `${ctx.count} dispositif(s) ≤ ${win.maxCount} — ${win.ref}`));
+    }
+    return severity;
+  }
+
+  if (ctx.digital) {
+    const digital = zone.digital;
+    if (digital.allowed === false) {
+      results.push(row("bad", "Numérique", `Enseigne numérique interdite en ${ctx.ze} — ${digital.ref}`));
+      severity = "bad";
+    } else if (digital.allowed === "fuel_or_emergency") {
+      if (ctx.fuelStation || ctx.emergency) {
+        results.push(row("ok", "Numérique", `Exception admise pour service d’urgence ou station-service affichant les tarifs — ${digital.ref}`));
+      } else {
+        results.push(row("bad", "Numérique", `Autorisé uniquement pour les services d’urgence et les stations-service affichant les tarifs — ${digital.ref}`));
+        severity = "bad";
+      }
+    } else {
+      results.push(row("ok", "Numérique", `Enseigne numérique admise en ${ctx.ze} sous conditions — ${digital.ref}`));
+      severity = worsen(severity, checkLimit(results, "Surface numérique", ctx.surface, digital.maxSurface, "m²", digital.ref));
+      if (ctx.mounting === "ground") {
+        severity = worsen(severity, checkLimit(results, "Hauteur numérique", ctx.totalHeight, digital.maxGroundHeight, "m", digital.ref));
+      }
+    }
+  }
+
+  const rule = zone.rules?.[ctx.mounting];
+  if (!rule) {
+    results.push(row("warn", "Référentiel", `Implantation non traitée automatiquement pour ${ctx.ze}.`));
+    return worsen(severity, "warn");
+  }
+
+  if (rule.allowed === false) {
+    results.push(row("bad", "Implantation", `Enseigne interdite pour cette implantation en ${ctx.ze} — ${rule.ref}`));
+    return "bad";
+  }
+
+  results.push(row("ok", "Implantation", `Implantation admise en ${ctx.ze} — ${rule.ref}`));
+
+  if (ctx.mounting === "ground") {
+    if (ctx.surface <= 1 && ctx.surface > 0) {
+      severity = worsen(severity, checkLimit(results, "Hauteur", ctx.totalHeight, rule.smallMaxHeight, "m", rule.ref));
+    } else if (ctx.surface > 1) {
+      if (rule.largeAllowed === false) {
+        results.push(row("bad", "Surface", `Enseigne au sol > 1 m² interdite en ${ctx.ze} — ${rule.ref}`));
+        severity = "bad";
+      } else {
+        const grouped = ctx.activities >= 2;
+        const maxSurface = grouped ? rule.groupedMaxSurface : rule.largeMaxSurface;
+        const maxHeight = grouped ? rule.groupedMaxHeight : rule.largeMaxHeight;
+        severity = worsen(severity, checkLimit(results, grouped ? "Surface cumulée" : "Surface", ctx.surface, maxSurface, "m²", rule.ref));
+        severity = worsen(severity, checkLimit(results, "Hauteur", ctx.totalHeight, maxHeight, "m", rule.ref));
+      }
+    }
+    if (ctx.count > 1) {
+      results.push(row("warn", "Nombre", `Le RLPi prévoit en principe une enseigne au sol par activité et par voie : vérifier le nombre de voies bordant le terrain — ${rule.ref}`));
+      severity = worsen(severity, "warn");
+    }
+  }
+
+  if (ctx.mounting === "wall") {
+    const largeFacade = ctx.facadeSurface > 200;
+    const maxH = largeFacade ? (rule.maxHeightLargeFacade ?? rule.letterHeightLargeFacade) : (rule.maxHeight ?? rule.letterHeight);
+    if (ctx.height && maxH != null) {
+      const label = rule.letterHeight != null ? "Hauteur du lettrage" : "Hauteur de l’enseigne";
+      severity = worsen(severity, checkLimit(results, label, ctx.height, maxH, "m", rule.ref));
+    }
+    if (ctx.projection && rule.maxProjection != null) {
+      severity = worsen(severity, checkLimit(results, "Saillie", ctx.projection, rule.maxProjection, "m", rule.ref));
+    }
+  }
+
+  if (ctx.mounting === "perpendicular") {
+    severity = worsen(severity, checkLimit(results, "Hauteur", ctx.height, rule.maxHeight, "m", rule.ref));
+    severity = worsen(severity, checkLimit(results, "Saillie", ctx.projection, rule.maxProjection, "m", rule.ref));
+    if (rule.maxCountPerActivity != null && ctx.count > rule.maxCountPerActivity) {
+      results.push(row("bad", "Nombre", `${ctx.count} dispositifs > ${rule.maxCountPerActivity} maximum par activité — ${rule.ref}`));
+      severity = "bad";
+    }
+  }
+
+  if (ctx.mounting === "fence") {
+    if (rule.requiresNoFacadeSign && !ctx.noFacadeSign) {
+      results.push(row("bad", "Condition clôture", `En ${ctx.ze}, l’enseigne sur clôture n’est admise que si aucune enseigne ne peut être installée sur la façade — ${rule.ref}`));
+      severity = "bad";
+    }
+    const maxSurface = ctx.activities >= 2 ? rule.groupedMaxSurface : rule.maxSurface;
+    severity = worsen(severity, checkLimit(results, ctx.activities >= 2 ? "Surface cumulée" : "Surface", ctx.surface, maxSurface, "m²", rule.ref));
+  }
+
+  if (ctx.lit) {
+    results.push(row("warn", "Extinction lumineuse", `${general.extinction} — ${general.extinctionRef}`));
+    severity = worsen(severity, "warn");
+  }
+
+  return severity;
+}
+
+function analyze() {
   const results = [];
   let severity = "ok";
 
-  if (!zone) {
-    results.push(row("warn", "Zonage", "Zone réglementaire non renseignée."));
-    severity = "warn";
+  if (!RULES) {
+    results.push(row("bad", "Référentiel", "Le fichier des règles n’a pas pu être chargé. Rechargez la page."));
+    $("checksResult").innerHTML = results.join("");
+    return;
   }
 
-  if (!width || !height) {
-    results.push(row("warn", "Dimensions", "Largeur et hauteur du dispositif à renseigner."));
+  const ctx = {
+    type: $("deviceType").value,
+    mounting: $("mounting").value,
+    ze: $("ze").value,
+    zp: $("zp").value,
+    width: num("width"),
+    height: num("height"),
+    totalHeight: num("totalHeight"),
+    count: num("count") || 1,
+    frontage: num("frontage"),
+    activities: num("activities") || 1,
+    facadeSurface: num("facadeSurface"),
+    projection: num("projection"),
+    lit: $("lit").checked,
+    digital: $("digital").checked,
+    fuelStation: $("fuelStation").checked,
+    emergency: $("emergency").checked,
+    noFacadeSign: $("noFacadeSign").checked,
+    motorway: $("motorway").checked
+  };
+  ctx.surface = ctx.width * ctx.height;
+
+  if (!ctx.width || !ctx.height) {
+    results.push(row("warn", "Dimensions", "Largeur et hauteur du dispositif à renseigner pour contrôler la surface."));
     severity = "warn";
   } else {
-    results.push(row("ok", "Surface calculée", `${surface.toFixed(2)} m²`));
+    results.push(row("ok", "Surface calculée", `${ctx.surface.toFixed(2)} m²`));
   }
 
-  if (rule && surface) {
-    if (surface <= rule.maxSurface) {
-      results.push(row("ok", "Surface", `${surface.toFixed(2)} m² ≤ ${rule.maxSurface} m² — ${rule.ref}`));
-    } else {
-      results.push(row("bad", "Surface", `${surface.toFixed(2)} m² > ${rule.maxSurface} m² — ${rule.ref}`));
-      severity = "bad";
-    }
-
-    if (totalHeight) {
-      if (totalHeight <= rule.maxHeight) {
-        results.push(row("ok", "Hauteur", `${totalHeight.toFixed(2)} m ≤ ${rule.maxHeight} m — ${rule.ref}`));
-      } else {
-        results.push(row("bad", "Hauteur", `${totalHeight.toFixed(2)} m > ${rule.maxHeight} m — ${rule.ref}`));
-        severity = "bad";
-      }
-    }
-  } else if (zone && !rule) {
-    results.push(row("warn", "Référentiel", "Cette combinaison zone / implantation n’est pas encore codée dans la v0.1."));
-    if (severity !== "bad") severity = "warn";
+  if (ctx.type === "enseigne") {
+    severity = worsen(severity, analyzeSign(ctx, results));
+  } else {
+    severity = worsen(severity, analyzeAdvertising(ctx, results));
   }
 
-  if (digital) {
-    results.push(row("warn", "Numérique", "Contrôle spécifique requis : type d’activité, zone, surface, luminosité et extinction."));
-    if (severity !== "bad") severity = "warn";
+  if (ctx.motorway) {
+    results.push(row("warn", "Autoroute / voie express", "Contrôle complémentaire requis au titre du Code de la route et des règles nationales de visibilité. Le RLPi local ne suffit pas à conclure."));
+    severity = worsen(severity, "warn");
   }
 
-  if (motorway) {
-    results.push(row("warn", "Autoroute / voie express", "Contrôle complémentaire obligatoire au titre du Code de la route et des règles de visibilité depuis l’axe."));
-    if (severity !== "bad") severity = "warn";
-  }
+  results.push(row("warn", "Portée de l’analyse", "Pré-analyse RLPi uniquement : vérifier également le Code de l’environnement, les protections patrimoniales, les autorisations nécessaires et les particularités du site."));
+  severity = worsen(severity, "warn");
 
   const city = $("city").value.trim() || "Commune non renseignée";
-  $("summary").textContent = `${city} · ${type} · ${zone || "zone à déterminer"}${surface ? ` · ${surface.toFixed(2)} m²` : ""}`;
+  const zone = ctx.type === "enseigne" ? ctx.ze : ctx.zp;
+  $("summary").textContent = `${city} · ${ctx.type} · ${zone || "zone à déterminer"}${ctx.surface ? ` · ${ctx.surface.toFixed(2)} m²` : ""}`;
   $("checksResult").innerHTML = results.join("");
 
   const badge = $("statusBadge");
   badge.className = `badge ${severity}`;
-  badge.textContent = severity === "bad" ? "Non conforme / à corriger" : severity === "warn" ? "Vérification requise" : "Pré-analyse conforme";
+  badge.textContent = severity === "bad" ? "Non conforme / à corriger" : severity === "warn" ? "Conforme sous réserves / à vérifier" : "Pré-analyse conforme";
 }
 
 $("analyzeBtn").addEventListener("click", analyze);
+loadRules();
