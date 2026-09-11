@@ -9,26 +9,26 @@
   <meta http-equiv="Expires" content="0" />
   <title>Atlas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="styles.css?v=1.2" />
+  <link rel="stylesheet" href="styles.css?v=1.3" />
 </head>
 <body>
   <header class="topbar">
     <div><h1>Atlas</h1><p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p></div>
-    <span class="version">v1.2</span>
+    <span class="version">v1.3</span>
   </header>
 
   <main class="layout">
     <section class="card">
-      <div class="section-head"><h2>Localisation</h2><span class="mini-badge">Adresse + parcelle + fiabilité</span></div>
-      <div class="address-search"><label>Adresse<div class="address-row"><input id="address" type="text" autocomplete="off" placeholder="Ex. 7 avenue de Thionville, Woippy" /><button id="geocodeBtn" class="secondary" type="button">Rechercher</button></div><div id="addressSuggestions" class="address-suggestions" hidden></div></label></div>
-      <div id="geoStatus" class="geo-status neutral">Saisissez une adresse : Atlas recherchera automatiquement la commune et les coordonnées.</div>
+      <div class="section-head"><h2>Localisation</h2><span class="mini-badge">Adresse + lieu + parcelle + fiabilité</span></div>
+      <div class="address-search"><label>Adresse ou lieu<div class="address-row"><input id="address" type="text" autocomplete="off" placeholder="Ex. 7 avenue de Thionville ou Aire de Saint-Rémy, Woippy" /><button id="geocodeBtn" class="secondary" type="button">Rechercher</button></div><div id="addressSuggestions" class="address-suggestions" hidden></div></label></div>
+      <div id="geoStatus" class="geo-status neutral">Saisissez une adresse, un lieu ou un établissement : Atlas recherchera automatiquement l’emplacement.</div>
       <div class="geo-summary six">
         <div><span>Code postal</span><strong id="postcode">—</strong></div><div><span>Coordonnées</span><strong id="coords">—</strong></div><div><span>Précision adresse</span><strong id="addressPrecision" class="scope-badge neutral">À déterminer</strong></div><div><span>Parcelle</span><strong id="parcel" class="scope-badge neutral">—</strong></div><div><span>Périmètre</span><strong id="rlpiScope" class="scope-badge neutral">À déterminer</strong></div><div><span>Confiance zonage</span><strong id="zoneConfidence" class="scope-badge neutral">À confirmer</strong></div><div><span>Méthode zonage</span><strong id="zoneMethod" class="scope-badge neutral">Non déterminée</strong></div>
       </div>
       <div id="map" class="map" aria-label="Carte de localisation"></div>
       <div class="grid two">
         <label>Commune<input id="city" type="text" placeholder="Woippy" /></label>
-        <div class="info-field"><span>Zonage assisté v1.2</span><strong>Analyse + export + historique local</strong><small>Les dossiers analysés peuvent maintenant être enregistrés et restaurés sur le même navigateur.</small></div>
+        <div class="info-field"><span>Zonage assisté v1.3</span><strong>Recherche adresse + lieux / établissements</strong><small>Atlas interroge désormais les index adresse et POI de la Géoplateforme. Un lieu trouvé reste indicatif pour l’implantation exacte du dispositif et la parcelle doit être contrôlée.</small></div>
         <label>Zone publicité / préenseigne<select id="zp"><option value="">À déterminer</option><option>ZP1</option><option>ZP2</option><option>ZP3</option><option>ZP4-A</option><option>ZP4-B</option><option>ZP5-A</option><option>ZP5-B</option><option>ZP5-C</option></select></label>
         <label>Zone enseigne<select id="ze"><option value="">À déterminer</option><option>ZE1</option><option>ZE2</option><option>ZE3</option></select></label>
       </div>
@@ -38,8 +38,8 @@
 
     <section class="card heritage-card">
       <div class="section-head"><h2>Protections patrimoniales</h2><span id="heritageBadge" class="scope-badge neutral">À rechercher</span></div>
-      <div id="heritageStatus" class="geo-status neutral">Le contrôle se lance automatiquement après sélection d’une adresse.</div>
-      <details id="heritageDetails" class="heritage-details"><summary>Afficher le détail AC1 / AC2 / AC4</summary><div class="heritage-grid"><div><span class="heritage-title">AC1</span><strong>Monuments historiques / abords</strong><small>Contrôle des servitudes patrimoniales liées aux monuments historiques.</small></div><div><span class="heritage-title">AC2</span><strong>Sites inscrits / classés</strong><small>Contrôle des protections relatives aux monuments naturels et sites.</small></div><div><span class="heritage-title">AC4</span><strong>Sites patrimoniaux remarquables</strong><small>Contrôle des SPR, PVAP et protections patrimoniales associées.</small></div></div><div id="heritageResults" class="heritage-results"><div class="heritage-empty"><strong>Aucune recherche effectuée.</strong><span>Sélectionnez une adresse pour interroger les servitudes patrimoniales du Géoportail de l’Urbanisme.</span></div></div><p class="source-links"><a href="https://www.geoportail-urbanisme.gouv.fr/" target="_blank" rel="noopener">Ouvrir le Géoportail de l’Urbanisme</a></p></details>
+      <div id="heritageStatus" class="geo-status neutral">Le contrôle se lance automatiquement après sélection d’un emplacement.</div>
+      <details id="heritageDetails" class="heritage-details"><summary>Afficher le détail AC1 / AC2 / AC4</summary><div class="heritage-grid"><div><span class="heritage-title">AC1</span><strong>Monuments historiques / abords</strong><small>Contrôle des servitudes patrimoniales liées aux monuments historiques.</small></div><div><span class="heritage-title">AC2</span><strong>Sites inscrits / classés</strong><small>Contrôle des protections relatives aux monuments naturels et sites.</small></div><div><span class="heritage-title">AC4</span><strong>Sites patrimoniaux remarquables</strong><small>Contrôle des SPR, PVAP et protections patrimoniales associées.</small></div></div><div id="heritageResults" class="heritage-results"><div class="heritage-empty"><strong>Aucune recherche effectuée.</strong><span>Sélectionnez un emplacement pour interroger les servitudes patrimoniales du Géoportail de l’Urbanisme.</span></div></div><p class="source-links"><a href="https://www.geoportail-urbanisme.gouv.fr/" target="_blank" rel="noopener">Ouvrir le Géoportail de l’Urbanisme</a></p></details>
     </section>
 
     <section class="card">
@@ -57,7 +57,7 @@
       <div class="result-head"><h2>Résultat réglementaire</h2><span id="statusBadge" class="badge neutral">En attente</span></div>
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div><div id="checksResult" class="checks-result"></div>
       <div class="checks" id="reportActions"><button id="saveCaseBtn" class="primary" type="button">Enregistrer le dossier</button><button id="printBtn" class="secondary" type="button">Imprimer / PDF</button><button id="copyReportBtn" class="secondary" type="button">Copier la fiche</button></div>
-      <details><summary>Référentiel et limites de la v1.2</summary><p>Atlas v1.2 ajoute un historique local des dossiers analysés, en plus de la fiche exportable et des contrôles RLPi/nationaux.</p><p>L’historique est stocké uniquement dans le navigateur utilisé et peut disparaître si les données du site sont effacées. Un dossier restauré conserve son instantané de résultat ; avant une nouvelle analyse, il faut relancer la recherche d’adresse afin de réactualiser parcelle, zonage et patrimoine.</p><p>Les contrôles nationaux restent une première couche ciblée et ne remplacent pas l’instruction complète.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
+      <details><summary>Référentiel et limites de la v1.3</summary><p>Atlas v1.3 ajoute la recherche de lieux et établissements via l’index POI de la Géoplateforme, en complément des adresses classiques.</p><p>Un POI fournit un point utile pour localiser un site, récupérer une parcelle indicative, lancer les contrôles patrimoniaux et afficher la carte. Il ne prouve pas à lui seul l’implantation exacte du dispositif : la parcelle et le point précis restent à contrôler avant décision.</p><p>Les fonctions v1.0 à v1.2 sont conservées : règles nationales ciblées, fiche exportable et historique local.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
     </section>
 
     <section class="card">
@@ -65,6 +65,6 @@
       <div id="historyList" class="checks-result"><div class="heritage-empty"><strong>Aucun dossier enregistré.</strong><span>L’historique est conservé uniquement dans ce navigateur.</span></div></div>
     </section>
   </main>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.2"></script><script src="heritage.js?v=1.2"></script><script src="geocode.js?v=1.2"></script><script src="app.js?v=1.2"></script><script src="export.js?v=1.2"></script><script src="history.js?v=1.2"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.3"></script><script src="heritage.js?v=1.3"></script><script src="geocode.js?v=1.3"></script><script src="app.js?v=1.3"></script><script src="export.js?v=1.3"></script><script src="history.js?v=1.3"></script>
 </body>
 </html>
