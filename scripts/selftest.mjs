@@ -12,8 +12,11 @@ function precisionOf(properties = {}) {
   return 'approx';
 }
 
-async function json(url) {
-  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/0.9' } });
+async function json(url, timeoutMs = 10000) {
+  const res = await fetch(url, {
+    headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/0.9' },
+    signal: AbortSignal.timeout(timeoutMs)
+  });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
   return res.json();
 }
@@ -30,18 +33,10 @@ async function runCase(test) {
   const city = p.city || p.city_name || p.name || '';
   const postcode = p.postcode || p.postcode_ || '';
 
-  if (test.expected?.city && city !== test.expected.city) {
-    throw new Error(`Commune attendue ${test.expected.city}, reçue ${city}`);
-  }
-  if (test.expected?.postcode && postcode !== test.expected.postcode) {
-    throw new Error(`Code postal attendu ${test.expected.postcode}, reçu ${postcode}`);
-  }
-  if (test.expected?.precision && precision !== test.expected.precision) {
-    throw new Error(`Précision attendue ${test.expected.precision}, reçue ${precision}`);
-  }
-  if (test.expected?.precisionNot && precision === test.expected.precisionNot) {
-    throw new Error(`Précision ne devait pas être ${test.expected.precisionNot}`);
-  }
+  if (test.expected?.city && city !== test.expected.city) throw new Error(`Commune attendue ${test.expected.city}, reçue ${city}`);
+  if (test.expected?.postcode && postcode !== test.expected.postcode) throw new Error(`Code postal attendu ${test.expected.postcode}, reçu ${postcode}`);
+  if (test.expected?.precision && precision !== test.expected.precision) throw new Error(`Précision attendue ${test.expected.precision}, reçue ${precision}`);
+  if (test.expected?.precisionNot && precision === test.expected.precisionNot) throw new Error(`Précision ne devait pas être ${test.expected.precisionNot}`);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('Coordonnées absentes');
 
   let parcel = null;
@@ -57,24 +52,13 @@ async function runCase(test) {
   let heritage = 'non testé';
   try {
     const supUrl = `https://www.geoportail-urbanisme.gouv.fr/api/feature-info/sup?lon=${encodeURIComponent(lon)}&lat=${encodeURIComponent(lat)}`;
-    const sup = await json(supUrl);
+    const sup = await json(supUrl, 8000);
     heritage = Array.isArray(sup.features) ? `${sup.features.length} SUP au point` : 'réponse reçue';
   } catch (error) {
     heritage = `indisponible (${error.message})`;
   }
 
-  return {
-    name: test.name,
-    query: test.query,
-    label: p.label || p.name || '',
-    city,
-    postcode,
-    precision,
-    lat,
-    lon,
-    parcel,
-    heritage
-  };
+  return { name: test.name, query: test.query, label: p.label || p.name || '', city, postcode, precision, lat, lon, parcel, heritage };
 }
 
 let failed = 0;
