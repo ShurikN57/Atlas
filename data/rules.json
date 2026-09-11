@@ -1,0 +1,158 @@
+{
+  "version": "0.2",
+  "source": {
+    "title": "Règlement Local de Publicité intercommunal — Eurométropole de Metz",
+    "url": "https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf",
+    "status": "RLPi approuvé le 3 février 2025"
+  },
+  "general": {
+    "enseigne": {
+      "forbiddenMountings": ["roof"],
+      "forbiddenMountingsRef": "Partie 2 — Chapitre 1 — art. 1.1",
+      "flashingForbidden": true,
+      "monoblocLightboxForbidden": true,
+      "extinction": "Extinction au plus tard 1 h après la fermeture ; rallumage dès l’ouverture.",
+      "extinctionRef": "Partie 2 — Chapitre 1 — art. 1.3"
+    },
+    "windowLight": {
+      "maxCount": 2,
+      "maxCumulativeSurface": 1,
+      "ref": "Partie 3 — art. 1.1"
+    }
+  },
+  "advertising": {
+    "ZP1": {
+      "label": "Secteurs à forte protection",
+      "defaultForbidden": true,
+      "exceptions": {
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 2.1 + règlement national"}
+      }
+    },
+    "ZP2": {
+      "label": "Secteurs patrimoniaux",
+      "rules": {
+        "street_furniture": {"allowed": true, "maxSurface": 2, "maxHeight": 3, "ref": "Partie 1 — art. 3.2"},
+        "wall": {"allowed": false, "ref": "Partie 1 — art. 3.3"},
+        "ground": {"allowed": false, "ref": "Partie 1 — art. 3.4"},
+        "fence": {"allowed": false, "ref": "Partie 1 — art. 3.5"},
+        "roof": {"allowed": false, "ref": "Partie 1 — art. 3.6"},
+        "tarp": {"allowed": false, "ref": "Partie 1 — art. 3.7"},
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 3.8"}
+      },
+      "digital": {"allowed": false, "ref": "Partie 1 — art. 3.9"}
+    },
+    "ZP3": {
+      "label": "Secteurs urbains",
+      "rules": {
+        "street_furniture": {"allowed": true, "maxSurface": 2, "maxHeight": 3, "ref": "Partie 1 — art. 4.1"},
+        "wall": {"allowed": true, "maxSurface": 4.7, "maxHeight": 6, "maxCount": 1, "ref": "Partie 1 — art. 4.2 et 4.9"},
+        "ground": {"allowed": false, "ref": "Partie 1 — art. 4.3"},
+        "fence": {"allowed": false, "ref": "Partie 1 — art. 4.4"},
+        "roof": {"allowed": false, "ref": "Partie 1 — art. 4.5"},
+        "tarp": {"allowed": false, "ref": "Partie 1 — art. 4.6"},
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 4.7"}
+      },
+      "digital": {"allowed": false, "ref": "Partie 1 — art. 4.8"}
+    },
+    "ZP4-A": {
+      "label": "Axes structurants — cœur métropolitain",
+      "rules": {
+        "street_furniture": {"allowed": true, "maxSurface": 8, "maxHeight": 6, "ref": "Partie 1 — art. 5.1"},
+        "wall": {"allowed": true, "maxSurface": 10.5, "maxHeight": 6, "maxCount": 1, "ref": "Partie 1 — art. 5.2 et 5.9"},
+        "ground": {"allowed": true, "maxSurface": 10.5, "maxHeight": 6, "maxCount": 1, "minFrontage": 20, "ref": "Partie 1 — art. 5.3 et 5.9"},
+        "fence": {"allowed": false, "ref": "Partie 1 — art. 5.4"},
+        "roof": {"allowed": false, "ref": "Partie 1 — art. 5.5"},
+        "tarp": {"allowed": false, "ref": "Partie 1 — art. 5.6"},
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 5.7"}
+      },
+      "digital": {"allowed": false, "ref": "Partie 1 — art. 5.8"}
+    },
+    "ZP4-B": {
+      "label": "Axes structurants — unité urbaine",
+      "rules": {
+        "street_furniture": {"allowed": true, "maxSurface": 8, "maxHeight": 6, "ref": "Partie 1 — art. 5.1"},
+        "wall": {"allowed": true, "maxSurface": 10.5, "maxHeight": 6, "maxCount": 1, "ref": "Partie 1 — art. 5.2 et 5.9"},
+        "ground": {"allowed": false, "ref": "Partie 1 — art. 5.3"},
+        "fence": {"allowed": false, "ref": "Partie 1 — art. 5.4"},
+        "roof": {"allowed": false, "ref": "Partie 1 — art. 5.5"},
+        "tarp": {"allowed": false, "ref": "Partie 1 — art. 5.6"},
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 5.7"}
+      },
+      "digital": {"allowed": false, "ref": "Partie 1 — art. 5.8"}
+    },
+    "ZP5-A": {
+      "label": "Secteurs d’activités majeurs",
+      "rules": {
+        "street_furniture": {"allowed": true, "maxSurface": 8, "maxHeight": 6, "ref": "Partie 1 — art. 6.1"},
+        "wall": {"allowed": true, "maxSurface": 10.5, "maxHeight": 6, "maxCount": 1, "ref": "Partie 1 — art. 6.2 et 6.9"},
+        "ground": {"allowed": true, "maxSurface": 10.5, "maxHeight": 6, "maxCount": 1, "minFrontage": 20, "ref": "Partie 1 — art. 6.3 et 6.9"},
+        "fence": {"allowed": false, "ref": "Partie 1 — art. 6.4"},
+        "roof": {"allowed": false, "ref": "Partie 1 — art. 6.5"},
+        "tarp": {"allowed": true, "maxSurface": 2, "ref": "Partie 1 — art. 6.6"},
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 6.7"}
+      },
+      "digital": {"allowed": true, "maxSurface": 4, "maxHeight": 4, "ref": "Partie 1 — art. 6.8"}
+    },
+    "ZP5-B": {
+      "label": "Secteurs d’activités diffus",
+      "rules": {
+        "street_furniture": {"allowed": true, "maxSurface": 8, "maxHeight": 6, "ref": "Partie 1 — art. 6.1"},
+        "wall": {"allowed": true, "maxSurface": 10.5, "maxHeight": 6, "maxCount": 1, "ref": "Partie 1 — art. 6.2 et 6.9"},
+        "ground": {"allowed": false, "ref": "Partie 1 — art. 6.3"},
+        "fence": {"allowed": false, "ref": "Partie 1 — art. 6.4"},
+        "roof": {"allowed": false, "ref": "Partie 1 — art. 6.5"},
+        "tarp": {"allowed": true, "maxSurface": 2, "ref": "Partie 1 — art. 6.6"},
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 6.7"}
+      },
+      "digital": {"allowed": false, "ref": "Partie 1 — art. 6.8"}
+    },
+    "ZP5-C": {
+      "label": "Secteurs d’activités hors unité urbaine",
+      "rules": {
+        "street_furniture": {"allowed": true, "maxSurface": 2, "maxHeight": 3, "ref": "Partie 1 — art. 6.1"},
+        "wall": {"allowed": true, "maxSurface": 4.7, "maxHeight": 6, "maxCount": 1, "ref": "Partie 1 — art. 6.2 et 6.9"},
+        "ground": {"allowed": false, "ref": "Partie 1 — art. 6.3"},
+        "fence": {"allowed": false, "ref": "Partie 1 — art. 6.4"},
+        "roof": {"allowed": false, "ref": "Partie 1 — art. 6.5"},
+        "tarp": {"allowed": false, "ref": "Partie 1 — art. 6.6"},
+        "construction": {"allowed": true, "maxSurface": 2, "maxCount": 1, "ref": "Partie 1 — art. 6.7"}
+      },
+      "digital": {"allowed": false, "ref": "Partie 1 — art. 6.8"}
+    }
+  },
+  "signs": {
+    "ZE1": {
+      "label": "Secteurs d’intérêt patrimonial ou naturel",
+      "rules": {
+        "wall": {"allowed": true, "maxProjection": 0.15, "letterHeight": 0.30, "letterHeightLargeFacade": 1, "ref": "Partie 2 — art. 2.1"},
+        "perpendicular": {"allowed": true, "maxHeight": 0.60, "maxProjection": 0.80, "maxCountPerActivityPerRoad": 1, "ref": "Partie 2 — art. 2.2"},
+        "ground": {"allowed": true, "smallMaxSurface": 1, "smallMaxHeight": 1.5, "largeAllowed": false, "maxCountPerActivityPerRoad": 1, "ref": "Partie 2 — art. 2.3"},
+        "fence": {"allowed": false, "ref": "Partie 2 — art. 2.4"},
+        "roof": {"allowed": false, "ref": "Partie 2 — chap. 1 art. 1.1"}
+      },
+      "digital": {"allowed": "fuel_or_emergency", "ref": "Partie 2 — art. 2.5"}
+    },
+    "ZE2": {
+      "label": "Secteurs urbains mixtes",
+      "rules": {
+        "wall": {"allowed": true, "maxHeight": 1, "maxHeightLargeFacade": 2, "maxProjection": 0.25, "ref": "Partie 2 — art. 3.1"},
+        "perpendicular": {"allowed": true, "maxHeight": 1, "maxProjection": 0.80, "maxCountPerActivityPerRoad": 1, "maxCountPerActivity": 2, "ref": "Partie 2 — art. 3.2"},
+        "ground": {"allowed": true, "smallMaxSurface": 1, "smallMaxHeight": 1.5, "largeMaxSurface": 4, "largeMaxHeight": 4, "groupedMaxSurface": 6, "groupedMaxHeight": 4, "maxCountPerActivityPerRoad": 1, "ref": "Partie 2 — art. 3.3"},
+        "fence": {"allowed": true, "maxSurface": 2, "groupedMaxSurface": 4, "requiresNoFacadeSign": true, "cannotCombineLargeGround": true, "ref": "Partie 2 — art. 3.4"},
+        "roof": {"allowed": false, "ref": "Partie 2 — chap. 1 art. 1.1"}
+      },
+      "digital": {"allowed": "fuel_or_emergency", "ref": "Partie 2 — art. 3.5"}
+    },
+    "ZE3": {
+      "label": "Secteurs d’activités économiques",
+      "rules": {
+        "wall": {"allowed": true, "maxHeight": 1, "maxHeightLargeFacade": 2, "maxProjection": 0.25, "ref": "Partie 2 — art. 5.1"},
+        "perpendicular": {"allowed": true, "maxHeight": 1, "maxProjection": 0.80, "maxCountPerActivityPerRoad": 1, "maxCountPerActivity": 2, "ref": "Partie 2 — art. 5.2"},
+        "ground": {"allowed": true, "smallMaxSurface": 1, "smallMaxHeight": 1.5, "largeMaxSurface": 6, "largeMaxHeight": 6, "groupedMaxSurface": 8, "groupedMaxHeight": 6, "maxCountPerActivityPerRoad": 1, "ref": "Partie 2 — art. 5.3"},
+        "fence": {"allowed": true, "maxSurface": 2, "groupedMaxSurface": 4, "maxCountPerActivityPerRoad": 1, "maxCountPerActivity": 2, "ref": "Partie 2 — art. 5.4"},
+        "roof": {"allowed": false, "ref": "Partie 2 — chap. 1 art. 1.1"}
+      },
+      "digital": {"allowed": true, "maxSurface": 2, "maxGroundHeight": 4, "ref": "Partie 2 — art. 5.5"}
+    }
+  }
+}
