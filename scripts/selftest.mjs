@@ -6,6 +6,7 @@ const appJs = await fs.readFile(new URL('../app.js', import.meta.url), 'utf8');
 const exportJs = await fs.readFile(new URL('../export.js', import.meta.url), 'utf8');
 const historyJs = await fs.readFile(new URL('../history.js', import.meta.url), 'utf8');
 const geocodeJs = await fs.readFile(new URL('../geocode.js', import.meta.url), 'utf8');
+const zoningJs = await fs.readFile(new URL('../zoning.js', import.meta.url), 'utf8');
 const v14Js = await fs.readFile(new URL('../v14.js', import.meta.url), 'utf8');
 
 function requireText(source, needle, label) {
@@ -13,7 +14,7 @@ function requireText(source, needle, label) {
 }
 
 function runStaticChecks() {
-  requireText(indexHtml, 'v1.4.1', 'version v1.4.1');
+  requireText(indexHtml, 'v1.4.2', 'version v1.4.2');
   requireText(indexHtml, 'id="outsideAgglomeration"', 'case hors agglomération');
   requireText(indexHtml, 'id="treeSupport"', 'case support sur arbre');
   requireText(appJs, 'function addNationalChecks', 'moteur de règles nationales');
@@ -22,10 +23,13 @@ function runStaticChecks() {
   requireText(indexHtml, 'id="printBtn"', 'bouton impression/PDF');
   requireText(indexHtml, 'id="copyReportBtn"', 'bouton copie fiche');
   requireText(exportJs, 'function atlasReportText', 'générateur de fiche');
+  requireText(exportJs, 'Zone ZE du plan', 'export zone ZE cartographique');
+  requireText(exportJs, 'Règles enseignes applicables', 'export règles ZE applicables');
   requireText(indexHtml, 'id="saveCaseBtn"', 'bouton enregistrement dossier');
   requireText(indexHtml, 'id="historyList"', 'liste historique');
-  requireText(indexHtml, 'history.js?v=1.4.1', 'chargement historique v1.4.1');
+  requireText(indexHtml, 'history.js?v=1.4.2', 'chargement historique v1.4.2');
   requireText(historyJs, 'ATLAS_HISTORY_KEY', 'clé stockage historique');
+  requireText(historyJs, '"zePlan"', 'historisation de la ZE du plan');
   requireText(historyJs, 'borderingRoads', 'historisation du nombre de voies');
   requireText(geocodeJs, 'searchIndex(query, "poi")', 'recherche POI Géoplateforme');
   requireText(geocodeJs, 'Promise.allSettled', 'recherche parallèle adresse + POI');
@@ -39,10 +43,16 @@ function runStaticChecks() {
   requireText(v14Js, 'function previewPlan', 'aperçu plan local');
   requireText(v14Js, 'function runPappersSearch', 'recherche documentaire publique');
   requireText(v14Js, 'politique.pappers.fr/commune/document', 'ciblage Pappers Politique');
-  requireText(indexHtml, 'v14.js?v=1.4.1', 'chargement outils v1.4.1');
+  requireText(indexHtml, 'v14.js?v=1.4.2', 'chargement outils v1.4.2');
   requireText(indexHtml, '05_REGLEMENT_GRAPHIQUE_ENSEIGNES.pdf', 'plan graphique officiel ZE');
-  requireText(indexHtml, 'Plan ZE · Enseignes', 'accès utilisateur au plan ZE');
-  console.log('✅ Contrôles statiques v1.4.1');
+  requireText(indexHtml, 'id="zePlan"', 'champ ZE du plan');
+  requireText(indexHtml, 'value="HORS_AGGLO"', 'option hors agglomération cartographique');
+  requireText(indexHtml, 'Règles enseignes applicables', 'champ règles enseignes applicables');
+  requireText(zoningJs, 'const OUTSIDE_AGGLO = "HORS_AGGLO"', 'état hors agglomération');
+  requireText(zoningJs, 'function applyZePlanRules', 'conversion ZE du plan vers règles applicables');
+  requireText(zoningJs, 'zeRules.value = "ZE2"', 'ZE2 par défaut hors agglomération');
+  requireText(zoningJs, 'syncOutsideAgglomeration', 'synchronisation hors agglomération');
+  console.log('✅ Contrôles statiques v1.4.2');
 }
 
 function firstText(...values) {
@@ -77,7 +87,7 @@ function precisionOf(properties = {}, sourceIndex = 'address') {
 }
 
 async function json(url, timeoutMs = 10000) {
-  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.4.1' }, signal: AbortSignal.timeout(timeoutMs) });
+  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.4.2' }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
   return res.json();
 }
