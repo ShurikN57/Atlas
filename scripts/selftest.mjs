@@ -13,7 +13,7 @@ function requireText(source, needle, label) {
 }
 
 function runStaticChecks() {
-  requireText(indexHtml, 'v1.4', 'version v1.4');
+  requireText(indexHtml, 'v1.4.1', 'version v1.4.1');
   requireText(indexHtml, 'id="outsideAgglomeration"', 'case hors agglomération');
   requireText(indexHtml, 'id="treeSupport"', 'case support sur arbre');
   requireText(appJs, 'function addNationalChecks', 'moteur de règles nationales');
@@ -24,7 +24,7 @@ function runStaticChecks() {
   requireText(exportJs, 'function atlasReportText', 'générateur de fiche');
   requireText(indexHtml, 'id="saveCaseBtn"', 'bouton enregistrement dossier');
   requireText(indexHtml, 'id="historyList"', 'liste historique');
-  requireText(indexHtml, 'history.js?v=1.4', 'chargement historique v1.4');
+  requireText(indexHtml, 'history.js?v=1.4.1', 'chargement historique v1.4.1');
   requireText(historyJs, 'ATLAS_HISTORY_KEY', 'clé stockage historique');
   requireText(historyJs, 'borderingRoads', 'historisation du nombre de voies');
   requireText(geocodeJs, 'searchIndex(query, "poi")', 'recherche POI Géoplateforme');
@@ -39,8 +39,10 @@ function runStaticChecks() {
   requireText(v14Js, 'function previewPlan', 'aperçu plan local');
   requireText(v14Js, 'function runPappersSearch', 'recherche documentaire publique');
   requireText(v14Js, 'politique.pappers.fr/commune/document', 'ciblage Pappers Politique');
-  requireText(indexHtml, 'v14.js?v=1.4', 'chargement outils v1.4');
-  console.log('✅ Contrôles statiques v1.4');
+  requireText(indexHtml, 'v14.js?v=1.4.1', 'chargement outils v1.4.1');
+  requireText(indexHtml, '05_REGLEMENT_GRAPHIQUE_ENSEIGNES.pdf', 'plan graphique officiel ZE');
+  requireText(indexHtml, 'Plan ZE · Enseignes', 'accès utilisateur au plan ZE');
+  console.log('✅ Contrôles statiques v1.4.1');
 }
 
 function firstText(...values) {
@@ -75,7 +77,7 @@ function precisionOf(properties = {}, sourceIndex = 'address') {
 }
 
 async function json(url, timeoutMs = 10000) {
-  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.4' }, signal: AbortSignal.timeout(timeoutMs) });
+  const res = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'Atlas-selftest/1.4.1' }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`);
   return res.json();
 }
