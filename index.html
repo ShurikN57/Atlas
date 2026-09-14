@@ -9,13 +9,13 @@
   <meta http-equiv="Expires" content="0" />
   <title>Atlas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="styles.css?v=1.4" />
-  <link rel="stylesheet" href="v14.css?v=1.4" />
+  <link rel="stylesheet" href="styles.css?v=1.4.1" />
+  <link rel="stylesheet" href="v14.css?v=1.4.1" />
 </head>
 <body>
   <header class="topbar">
     <div><h1>Atlas</h1><p>Assistant de pré-analyse RLPi — Eurométropole de Metz</p></div>
-    <span class="version">v1.4</span>
+    <span class="version">v1.4.1</span>
   </header>
 
   <main class="layout">
@@ -29,12 +29,13 @@
       <div id="map" class="map" aria-label="Carte de localisation"></div>
       <div class="grid two">
         <label>Commune<input id="city" type="text" placeholder="Woippy" /></label>
-        <div class="info-field"><span>Zonage assisté v1.4</span><strong>Recherche adresse + lieux / établissements</strong><small>Atlas conserve la chaîne de localisation v1.3.1 et ajoute les outils voies, plans et recherche documentaire.</small></div>
+        <div class="info-field"><span>Zonage assisté v1.4.1</span><strong>Recherche adresse + lieux / établissements</strong><small>Atlas conserve la chaîne de localisation et donne maintenant accès aux deux plans graphiques officiels RLPi : ZP et ZE.</small></div>
         <label>Zone publicité / préenseigne<select id="zp"><option value="">À déterminer</option><option>ZP1</option><option>ZP2</option><option>ZP3</option><option>ZP4-A</option><option>ZP4-B</option><option>ZP5-A</option><option>ZP5-B</option><option>ZP5-C</option></select></label>
         <label>Zone enseigne<select id="ze"><option value="">À déterminer</option><option>ZE1</option><option>ZE2</option><option>ZE3</option></select></label>
       </div>
-      <div id="zoneStatus" class="geo-status neutral">La ZE est automatiquement déduite dès qu’une ZP est connue.</div>
-      <p class="source-links"><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_arret/Zonage_pubs_V5_compressed.pdf" target="_blank" rel="noopener">Ouvrir le plan officiel des zonages</a></p>
+      <div id="zoneStatus" class="geo-status neutral">La ZE peut être préremplie depuis la ZP ; pour une décision, contrôler la zone sur le plan officiel Enseignes.</div>
+      <div class="source-links"><strong>Plans officiels RLPi :</strong> <a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_arret/Zonage_pubs_V5_compressed.pdf" target="_blank" rel="noopener">Plan ZP · Publicités / Préenseignes</a> · <a href="https://si.eurometropolemetz.eu/fiches/plui_partage_typo3/RLPi/rlp_en_vigueur/05_REGLEMENT_GRAPHIQUE_ENSEIGNES.pdf" target="_blank" rel="noopener">Plan ZE · Enseignes</a></div>
+      <p class="helper-note">Le plan ZE ci-dessus est le document graphique officiel de l’Eurométropole. Atlas ne le transforme pas en couche cartographique : tant qu’aucune géométrie SIG officielle n’est disponible, la sélection ZE reste à confirmer visuellement sur ce plan.</p>
     </section>
 
     <section class="card heritage-card">
@@ -105,7 +106,7 @@
       <div class="result-head"><h2>Résultat réglementaire</h2><span id="statusBadge" class="badge neutral">En attente</span></div>
       <div id="summary" class="summary">Renseignez le dossier puis lancez l’analyse.</div><div id="checksResult" class="checks-result"></div>
       <div class="checks" id="reportActions"><button id="saveCaseBtn" class="primary" type="button">Enregistrer le dossier</button><button id="printBtn" class="secondary" type="button">Imprimer / PDF</button><button id="copyReportBtn" class="secondary" type="button">Copier la fiche</button></div>
-      <details><summary>Référentiel et limites de la v1.4</summary><p>Atlas v1.4 ajoute le nombre de voies bordant l’activité, l’import local de plans avec analyse guidée, et une recherche documentaire Pappers.</p><p>La lecture des plans est assistée mais pas interprétée automatiquement par une IA : un backend sécurisé serait nécessaire pour envoyer et analyser un document sans exposer de clé API dans le site public.</p><p>La recherche Pappers est documentaire et séparée du verdict réglementaire. Les documents opposables et sources officielles restent prioritaires.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
+      <details><summary>Référentiel et limites de la v1.4.1</summary><p>Atlas v1.4.1 ajoute l’accès direct au plan graphique officiel des zones d’enseignes ZE1 / ZE2 / ZE3, en complément du plan ZP.</p><p>La ZE peut être préremplie depuis la ZP mais le plan officiel Enseignes reste la référence graphique à contrôler, notamment pour les axes ZP4 situés dans des secteurs patrimoniaux.</p><p>La lecture des plans de dossier est assistée mais pas interprétée automatiquement par une IA : un backend sécurisé serait nécessaire pour envoyer et analyser un document sans exposer de clé API dans le site public.</p><p>La recherche Pappers est documentaire et séparée du verdict réglementaire. Les documents opposables et sources officielles restent prioritaires.</p><p><a href="https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006074220/LEGISCTA000006159442/" target="_blank" rel="noopener">Ouvrir le chapitre Publicité, enseignes et préenseignes sur Légifrance</a></p><p><a href="https://www.eurometropolemetz.eu/fileadmin/user_upload/mediatheque_metropole/telechargement/RLPi/Docs_07_2024/REGLT_VF.pdf" target="_blank" rel="noopener">Ouvrir le règlement écrit officiel du RLPi</a></p></details>
     </section>
 
     <section class="card">
@@ -113,6 +114,6 @@
       <div id="historyList" class="checks-result"><div class="heritage-empty"><strong>Aucun dossier enregistré.</strong><span>L’historique est conservé uniquement dans ce navigateur.</span></div></div>
     </section>
   </main>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.4"></script><script src="heritage.js?v=1.4"></script><script src="geocode.js?v=1.4"></script><script src="app.js?v=1.4"></script><script src="export.js?v=1.4"></script><script src="history.js?v=1.4"></script><script src="v14.js?v=1.4"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="zoning.js?v=1.4.1"></script><script src="heritage.js?v=1.4.1"></script><script src="geocode.js?v=1.4.1"></script><script src="app.js?v=1.4.1"></script><script src="export.js?v=1.4.1"></script><script src="history.js?v=1.4.1"></script><script src="v14.js?v=1.4.1"></script>
 </body>
 </html>
