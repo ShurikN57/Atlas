@@ -1,13 +1,14 @@
-// Atlas v1.4 — export de la fiche d'instruction
+// Atlas v1.4.2 — export de la fiche d'instruction
 function atlasReportText() {
   const value = (id) => document.getElementById(id)?.textContent?.trim() || "—";
   const field = (id) => document.getElementById(id)?.value?.trim() || "—";
+  const selected = (id) => document.getElementById(id)?.selectedOptions?.[0]?.textContent?.trim() || "À déterminer";
   const address = field("address") === "—" ? "Adresse non renseignée" : field("address");
   const city = field("city") === "—" ? "Commune non renseignée" : field("city");
-  const device = document.getElementById("deviceType")?.selectedOptions?.[0]?.textContent || "—";
-  const mounting = document.getElementById("mounting")?.selectedOptions?.[0]?.textContent || "—";
-  const roads = document.getElementById("borderingRoads")?.selectedOptions?.[0]?.textContent || "À déterminer";
-  const roadsConfidence = document.getElementById("roadsConfidence")?.selectedOptions?.[0]?.textContent || "—";
+  const device = selected("deviceType");
+  const mounting = selected("mounting");
+  const roads = selected("borderingRoads");
+  const roadsConfidence = selected("roadsConfidence");
   const rows = [...document.querySelectorAll("#checksResult .check-row")].map((node) => {
     const title = node.querySelector("strong")?.textContent?.trim() || "Contrôle";
     const text = node.querySelector("span")?.textContent?.trim() || "";
@@ -20,8 +21,9 @@ function atlasReportText() {
     `Commune : ${city}`,
     `Parcelle : ${value("parcel")}`,
     `Précision adresse : ${value("addressPrecision")}`,
-    `Zone publicité : ${document.getElementById("zp")?.value || "À déterminer"}`,
-    `Zone enseigne : ${document.getElementById("ze")?.value || "À déterminer"}`,
+    `Zone ZP du plan : ${selected("zp")}`,
+    `Zone ZE du plan : ${selected("zePlan")}`,
+    `Règles enseignes applicables : ${selected("ze")}`,
     `Confiance zonage : ${value("zoneConfidence")}`,
     `Voies bordant l’activité : ${roads}`,
     `Confirmation des voies : ${roadsConfidence}`,
