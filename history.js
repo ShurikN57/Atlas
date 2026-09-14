@@ -1,9 +1,9 @@
-// Atlas v1.4 — historique local des dossiers
+// Atlas v1.4.2 — historique local des dossiers
 const ATLAS_HISTORY_KEY = "atlas_history_v1_2";
 const ATLAS_HISTORY_MAX = 30;
 
 const HISTORY_VALUE_FIELDS = [
-  "address", "city", "zp", "ze", "deviceType", "mounting", "width", "height", "totalHeight",
+  "address", "city", "zp", "zePlan", "ze", "deviceType", "mounting", "width", "height", "totalHeight",
   "count", "frontage", "activities", "facadeSurface", "projection", "borderingRoads", "roadsConfidence", "roadsNote", "planType"
 ];
 const HISTORY_CHECK_FIELDS = [
@@ -87,8 +87,9 @@ function restoreAtlasCase(id) {
   const geoStatus = document.getElementById("geoStatus");
   if (geoStatus) {
     geoStatus.className = "geo-status warn";
-    geoStatus.textContent = "Dossier historique restauré. Relancez la recherche d’adresse avant une nouvelle analyse afin de réactualiser parcelle, zonage et patrimoine.";
+    geoStatus.textContent = "Dossier historique restauré. Relancez la recherche d’adresse avant une nouvelle analyse afin de réactualiser parcelle, zonages et patrimoine.";
   }
+  window.AtlasZoning?.applyZePlanRules?.(false);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
